@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "artemis-aptos-backend"
+version = "0.1.0"
+description = "Artemis Aptos backend"
+authors = ["mannyuncharted <omoebun52@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.114.0"
+sqlalchemy = "^2.0.34"
+alembic = "^1.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
