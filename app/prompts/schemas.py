@@ -37,7 +37,7 @@ class PublicPromptListResponse(BaseModel):
 
 
 class PublicPromptFilterRequest(BaseModel):
-    prompt_tag: Optional[PromptTagEnum] = Field(None, description="Filter by prompt tag (3D Art, Anime)")
+    prompt_tag: Optional[str] = "all"  # Allow 'all' as a valid string
     public: Optional[bool] = Field(True, description="Filter by visibility flag (public)")
     page: Optional[int] = Field(1, description="Page number for pagination")
     page_size: Optional[int] = Field(10, description="Number of prompts per page")

@@ -35,8 +35,15 @@ def add_public_prompt(prompt_data: schemas.PublicPromptCreate, db: Session = Dep
 
 
 @router.get("/get-public-prompts/", response_model=schemas.PublicPromptListResponse)
-def get_public_prompts(db: Session = Depends(get_session)):
-    public_prompts = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PUBLIC).all()
+def get_public_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
+    # Query for all public prompts
+    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PUBLIC)
+    
+    # Get total count for pagination
+    total_prompts = query.count()
+    
+    # Apply pagination
+    public_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
     
     # Return the list wrapped in the `PublicPromptListResponse` schema
     return schemas.PublicPromptListResponse(
@@ -50,9 +57,11 @@ def get_public_prompts(db: Session = Depends(get_session)):
                 prompt_tag=prompt.prompt_tag
             )
             for prompt in public_prompts
-        ]
+        ],
+        total=total_prompts,
+        page=page,
+        page_size=page_size
     )
-
 
 @router.post("/filter-public-prompts/", response_model=schemas.PublicPromptListResponse)
 def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, db: Session = Depends(get_session)):
@@ -96,3 +105,4 @@ def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, db: Se
         page=filter_data.page,
         page_size=filter_data.page_size
     )
+ 
