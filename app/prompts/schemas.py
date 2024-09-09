@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from models import PromptTagEnum
+from app.core.enums.tags import PromptTagEnum, PromptTypeEnum
 
 class PublicPromptCreate(BaseModel):
     ipfs_image_url: str
@@ -42,3 +42,15 @@ class PublicPromptFilterRequest(BaseModel):
     page: Optional[int] = Field(1, description="Page number for pagination")
     page_size: Optional[int] = Field(10, description="Number of prompts per page")
 
+
+
+class LikePromptRequest(BaseModel):
+    prompt_id: int
+    prompt_type: PromptTypeEnum
+    user_account: str
+
+class CommentPromptRequest(BaseModel):
+    prompt_id: int
+    prompt_type: PromptTypeEnum
+    user_account: str
+    comment: str

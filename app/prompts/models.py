@@ -2,18 +2,8 @@ from datetime import datetime
 from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, Enum, Float, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base  # Assuming you're using a Base class from SQLAlchemy setup
+from app.core.enums.tags import PromptTagEnum, PromptTypeEnum
 
-class PromptTagEnum(str, Enum):
-    ART_3D = "3D Art"
-    ANIME = "Anime"
-    PHOTOGRAPHY = "Photography"
-    VECTOR = "Vector"
-    OTHER = "Other"
-    
-
-class PromptTypeEnum(str, Enum):
-    PUBLIC = "public"
-    PREMIUM = "premium"
 
 class Prompt(Base):
     __tablename__ = 'prompts'
