@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Enum
 from app.prompts.schemas import PromptTypeEnum
+from sqlalchemy.orm import relationship
 from app.core.database import Base  # Assuming you have a Base model class
 
 class SocialFeedPost(Base):
@@ -33,3 +34,11 @@ class PostComment(Base):
     user_account = Column(String, nullable=False)
     comment = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Follow(Base):
+    __tablename__ = 'follows'
+
+    id = Column(Integer, primary_key=True, index=True)
+    follower_account = Column(String, nullable=False)  # The account of the user who follows
+    creator_account = Column(String, nullable=False)   # The account of the creator being followed
