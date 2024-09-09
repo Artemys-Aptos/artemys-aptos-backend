@@ -1,14 +1,12 @@
 from pydantic import BaseModel
+from app.prompts.schemas import PromptTypeEnum
+class LikePromptRequest(BaseModel):
+    prompt_id: int
+    prompt_type: PromptTypeEnum
+    user_account: str
 
-class ItemBase(BaseModel):
-    title: str
-    description: str | None = None
-
-class ItemCreate(ItemBase):
-    pass
-
-class Item(ItemBase):
-    id: int
-
-    class Config:
-        from_attributes = True
+class CommentPromptRequest(BaseModel):
+    prompt_id: int
+    prompt_type: PromptTypeEnum
+    user_account: str
+    comment: str

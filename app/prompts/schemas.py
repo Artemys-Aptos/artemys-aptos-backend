@@ -44,13 +44,3 @@ class PublicPromptFilterRequest(BaseModel):
 
 
 
-class LikePromptRequest(BaseModel):
-    prompt_id: int
-    prompt_type: PromptTypeEnum
-    user_account: str
-
-class CommentPromptRequest(BaseModel):
-    prompt_id: int
-    prompt_type: PromptTypeEnum
-    user_account: str
-    comment: str

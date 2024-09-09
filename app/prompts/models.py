@@ -20,24 +20,3 @@ class Prompt(Base):
     max_supply = Column(Integer, nullable=True)  # Only relevant for PREMIUM prompts
     prompt_nft_price = Column(Float, nullable=True)  # Only relevant for PREMIUM prompts
     created_at = Column(DateTime, default=datetime.utcnow)
-
-
-
-class PostLike(Base):
-    __tablename__ = 'post_likes'
-
-    id = Column(Integer, primary_key=True, index=True)
-    prompt_id = Column(Integer, nullable=False)  # ID of either PublicPrompt or PremiumPrompt
-    prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # Type: public or premium
-    user_account = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-class PostComment(Base):
-    __tablename__ = 'post_comments'
-
-    id = Column(Integer, primary_key=True, index=True)
-    prompt_id = Column(Integer, nullable=False)  # ID of either PublicPrompt or PremiumPrompt
-    prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # Type: public or premium
-    user_account = Column(String, nullable=False)
-    comment = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)

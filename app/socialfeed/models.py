@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Enum
+from app.prompts.schemas import PromptTypeEnum
 from app.core.database import Base  # Assuming you have a Base model class
 
 class SocialFeedPost(Base):
@@ -10,4 +11,25 @@ class SocialFeedPost(Base):
     content = Column(String, nullable=False)
     likes = Column(Integer, default=0)
     comments_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+
+class PostLike(Base):
+    __tablename__ = 'post_likes'
+
+    id = Column(Integer, primary_key=True, index=True)
+    prompt_id = Column(Integer, nullable=False)  # ID of either PublicPrompt or PremiumPrompt
+    prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # Type: public or premium
+    user_account = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class PostComment(Base):
+    __tablename__ = 'post_comments'
+
+    id = Column(Integer, primary_key=True, index=True)
+    prompt_id = Column(Integer, nullable=False)  # ID of either PublicPrompt or PremiumPrompt
+    prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # Type: public or premium
+    user_account = Column(String, nullable=False)
+    comment = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
