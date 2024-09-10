@@ -23,10 +23,10 @@ def read_root():
     return {"Hello": "Service is live"}
 
 
-app.include_router(socialfeed_router)
-app.include_router(prompts_router)
-app.include_router(leaderboard_router)
-app.include_router(marketplace_router)
+app.include_router(socialfeed_router, prefix="/socialfeed")
+app.include_router(prompts_router, prefix="/prompts")
+app.include_router(leaderboard_router, prefix="/leaderboard")
+app.include_router(marketplace_router, prefix="/marketplace")
 
 
 

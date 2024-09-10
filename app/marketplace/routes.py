@@ -7,6 +7,7 @@ from . import schemas, services
 from app.prompts import models
 from app.core.helpers import paginate
 from app.core.enums.premium_filters import PremiumPromptFilterType
+from app.socialfeed.services import update_user_stats
 
 
 
@@ -14,14 +15,13 @@ router = APIRouter()
 
 
 
-@router.post("/marketplace/add-premium-prompts/", response_model=schemas.PremiumPromptResponse)
+@router.post("/add-premium-prompts/", response_model=schemas.PremiumPromptResponse)
 def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = Depends(get_session)):
     """
     Add a new premium prompt in the marketplace.
 
     - **ipfs_image_url**: IPFS URL for the image.
     - **account_address**: Address of the creator.
-    - **public**: Boolean flag indicating if the creation is public.
     - **collection_name**: Name of the collection.
     - **max_supply**: Maximum supply for the NFT.
     - **prompt_nft_price**: Price of the NFT in the collection.
@@ -41,13 +41,15 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
     db.add(new_premium_prompt)
     db.commit()
     db.refresh(new_premium_prompt)
+    # Update user stats (generation count and XP)
+    update_user_stats(new_premium_prompt.account_address, db)
 
     return new_premium_prompt
 
 
 
 
-@router.get("/marketplace/get-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
+@router.get("/get-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
 def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
     """
     Retrieve premium prompts with pagination.
@@ -80,7 +82,15 @@ def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depend
     )
 
 
-@router.post("/marketplace/filter-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
+@router.get("/premium-prompt-filters/")
+def get_premium_prompt_filters():
+    """
+    Get all available premium prompt filters.
+    """
+    filters = [filter_type.value for filter_type in PremiumPromptFilterType]
+    return {"premium_prompt_filters": filters}
+
+@router.post("/filter-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
 def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: Session = Depends(get_session)):
     """
     Filter premium prompts based on:

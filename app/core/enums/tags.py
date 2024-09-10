@@ -7,7 +7,15 @@ class PromptTagEnum(str, Enum):
     PHOTOGRAPHY = "Photography"
     VECTOR = "Vector"
     OTHER = "Other"
-    
+    SCIFI = "Sci-Fi"
+    FANTASY = "Fantasy"
+    MYSTERY = "Mystery"
+    THRILLER = "Thriller"
+    ROMANCE = "Romance"
+    WESTERN = "Western"
+    ACTION = "Action"
+    ADVENTURE = "Adventure"
+    COMEDY = "Comedy"
     
 
 class PromptTypeEnum(str, Enum):

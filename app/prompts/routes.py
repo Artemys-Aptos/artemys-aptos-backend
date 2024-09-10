@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from . import schemas, services, models
 from app.core.helpers import paginate
+from app.socialfeed.services import update_user_stats
 
 
 
@@ -30,8 +31,19 @@ def add_public_prompt(prompt_data: schemas.PublicPromptCreate, db: Session = Dep
     db.add(new_prompt)
     db.commit()
     db.refresh(new_prompt)
+    # Update user stats (generation count and XP)
+    update_user_stats(prompt_data.account_address, db)
 
     return {"message": "Public prompt created", "prompt": new_prompt}
+
+
+@router.get("/prompt-tags/")
+def get_prompt_tags():
+    """
+    Get all available prompt tags.
+    """
+    prompt_tags = [tag.value for tag in models.PromptTagEnum]
+    return {"prompt_tags": prompt_tags}
 
 
 @router.get("/get-public-prompts/", response_model=schemas.PublicPromptListResponse)

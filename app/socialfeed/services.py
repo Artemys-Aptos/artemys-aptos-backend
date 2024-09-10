@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from . import models, schemas
+from . import schemas
+from app.leaderboard import models
 
 def update_user_stats(user_account: str, db: Session):
     """
@@ -8,11 +9,11 @@ def update_user_stats(user_account: str, db: Session):
     - Add 2 XP per generation.
     - Update the streak if generations happen on consecutive days.
     """
-    user_stat = db.query(models.UserStat).filter(models.UserStat.user_account == user_account).first()
+    user_stat = db.query(models.UserStats).filter(models.UserStats.user_account == user_account).first()
     
     if not user_stat:
         # Create new user stat if not present
-        user_stat = models.UserStat(user_account=user_account)
+        user_stat = models.UserStats(user_account=user_account)
         db.add(user_stat)
     
     # Calculate XP

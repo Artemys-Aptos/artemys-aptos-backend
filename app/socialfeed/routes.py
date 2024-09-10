@@ -125,19 +125,6 @@ def get_prompt_comments(prompt_id: int, prompt_type: schemas.PromptTypeEnum, lim
 
 
 
-
-@router.post("/update-generation-count/")
-def update_generation_count(user_account: str, db: Session = Depends(get_session)):
-    """
-    Endpoint to update generation count and XP after a prompt (public or premium) is created.
-    - **user_account**: The account of the user creating the prompt.
-    """
-    # Update user stats (XP and generation count)
-    services.update_user_stats(user_account, db)
-    
-    return {"message": "Generation count and XP updated successfully"}
-
-
 @router.post("/follow-creator/")
 def follow_creator(follower_account: str, creator_account: str, db: Session = Depends(get_session)):
     """

@@ -5,7 +5,7 @@ from app.core.enums.premium_filters import PremiumPromptFilterType
 class PremiumPromptCreate(BaseModel):
     ipfs_image_url: str
     account_address: str
-    public: bool
+    # public: bool
     collection_name: str
     max_supply: int
     prompt_nft_price: str
