@@ -81,7 +81,7 @@ def comment_prompt(comment_data: schemas.CommentPromptRequest, db: Session = Dep
     return {"message": "Comment added successfully"}
 
 
-@router.get("/get-prompt-comments/{prompt_id}/", response_model=schemas.CommentsListResponse)
+@router.get("/get-prompt-comments/", response_model=schemas.CommentsListResponse)
 def get_prompt_comments(prompt_id: int, prompt_type: schemas.PromptTypeEnum, limit: int = 2, db: Session = Depends(get_session)):
     """
     Retrieve comments for a specific public or premium prompt.
@@ -125,6 +125,7 @@ def get_prompt_comments(prompt_id: int, prompt_type: schemas.PromptTypeEnum, lim
 
 
 
+
 @router.post("/follow-creator/")
 def follow_creator(follower_account: str, creator_account: str, db: Session = Depends(get_session)):
     """
@@ -150,7 +151,7 @@ def follow_creator(follower_account: str, creator_account: str, db: Session = De
     return {"message": "Successfully followed the creator"}
 
 
-@router.post("/unfollow-creator/")
+@router.delete("/unfollow-creator/")
 def unfollow_creator(follower_account: str, creator_account: str, db: Session = Depends(get_session)):
     """
     Unfollow a creator.
@@ -172,12 +173,12 @@ def unfollow_creator(follower_account: str, creator_account: str, db: Session = 
     return {"message": "Successfully unfollowed the creator"}
 
 
-@router.get("/social-feed/")
+@router.get("/feed/")
 def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
     """
     Social feed: Return prompts from creators the user is following and random new creators.
     
-    - **user_account**: The account of the user requesting the feed.
+    - **user_account**: The account wallet address of the user requesting the feed.
     - **page**: Page number for pagination.
     - **page_size**: Number of prompts per page.
     """
