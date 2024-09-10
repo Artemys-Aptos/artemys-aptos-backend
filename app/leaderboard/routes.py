@@ -16,7 +16,7 @@ def leaderboard_generations_24h(page: int = 1, page_size: int = 10, db: Session 
     """
     last_24_hours = datetime.utcnow() - timedelta(hours=24)
 
-    query = db.query(models.UserStat).filter(models.UserStat.last_generation >= last_24_hours).order_by(models.UserStat.total_generations.desc())
+    query = db.query(models.UserStats).filter(models.UserStats.last_generation >= last_24_hours).order_by(models.UserStats.total_generations.desc())
     total_count = query.count()
     users = paginate(query, page, page_size)
 
@@ -34,7 +34,7 @@ def leaderboard_streaks(db: Session = Depends(get_session)):
     """
     Leaderboard based on the number of consecutive days with generations.
     """
-    users = db.query(models.UserStat).order_by(models.UserStat.streak_days.desc()).all()
+    users = db.query(models.UserStats).order_by(models.UserStats.streak_days.desc()).all()
 
     return [{"user_account": user.user_account, "streak_days": user.streak_days} for user in users]
 
@@ -44,7 +44,7 @@ def leaderboard_xp(page: int = 1, page_size: int = 10, db: Session = Depends(get
     """
     Leaderboard based on XP with pagination.
     """
-    query = db.query(models.UserStat).order_by(models.UserStat.xp.desc())
+    query = db.query(models.UserStats).order_by(models.UserStats.xp.desc())
     total_count = query.count()
     users = paginate(query, page, page_size)
 
