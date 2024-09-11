@@ -44,9 +44,19 @@ def like_prompt(like_data: schemas.LikePromptRequest, db: Session = Depends(get_
         user_account=like_data.user_account
     )
     db.add(new_like)
-    prompt.likes += 1  # Increment like count
     db.commit()
-    return {"message": "Prompt liked successfully"}
+
+    # Get the updated number of likes
+    total_likes = db.query(models.PostLike).filter(
+        models.PostLike.prompt_id == like_data.prompt_id,
+        models.PostLike.prompt_type == like_data.prompt_type
+    ).count()
+
+    return {
+        "message": "Prompt liked successfully",
+        "total_likes": total_likes
+    }
+
 
 
 @router.post("/comment-prompt/")
