@@ -52,7 +52,7 @@ def like_prompt(like_data: schemas.LikePromptRequest, db: Session = Depends(get_
 @router.post("/comment-prompt/")
 def comment_prompt(comment_data: schemas.CommentPromptRequest, db: Session = Depends(get_session)):
     """
-    Comment on a public or premium prompt.
+    Add a comment to a public or premium prompt.
 
     - **prompt_id**: ID of the prompt (public or premium).
     - **prompt_type**: Whether the prompt is public or premium.
@@ -76,9 +76,35 @@ def comment_prompt(comment_data: schemas.CommentPromptRequest, db: Session = Dep
         comment=comment_data.comment
     )
     db.add(new_comment)
-    prompt.comments += 1  # Increment comment count
     db.commit()
-    return {"message": "Comment added successfully"}
+
+    # Get updated total comments count
+    total_comments = db.query(models.PostComment).filter(
+        models.PostComment.prompt_id == comment_data.prompt_id,
+        models.PostComment.prompt_type == comment_data.prompt_type
+    ).count()
+
+    # Get the latest comments (e.g., top 2)
+    top_comments = db.query(models.PostComment).filter(
+        models.PostComment.prompt_id == comment_data.prompt_id,
+        models.PostComment.prompt_type == comment_data.prompt_type
+    ).order_by(models.PostComment.created_at.desc()).limit(2).all()
+
+    # Commit the changes to the database
+    db.commit()
+
+    return {
+        "message": "Comment added successfully",
+        "total_comments": total_comments,
+        "latest_comments": [
+            {
+                "user_account": comment.user_account,
+                "comment": comment.comment,
+                "created_at": comment.created_at
+            }
+            for comment in top_comments
+        ]
+    }
 
 
 @router.get("/get-prompt-comments/", response_model=schemas.CommentsListResponse)
@@ -176,8 +202,9 @@ def unfollow_creator(follower_account: str, creator_account: str, db: Session = 
 @router.get("/feed/")
 def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
     """
-    Social feed: Return prompts from creators the user is following and random new creators.
-    
+    Social feed: Return prompts from creators the user is following and random new creators, along with total number
+    of comments and likes, as well as the top 2 comments for each prompt.
+
     - **user_account**: The account wallet address of the user requesting the feed.
     - **page**: Page number for pagination.
     - **page_size**: Number of prompts per page.
@@ -200,21 +227,48 @@ def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Sessi
     paginated_prompts = paginate(combined_query, page, page_size)
 
     # Return the feed
+    feed = []
+    for prompt in paginated_prompts:
+        # Get the total number of comments for the prompt
+        total_comments = db.query(models.PostComment).filter(
+            models.PostComment.prompt_id == prompt.id,
+            models.PostComment.prompt_type == prompt.prompt_type
+        ).count()
+
+        # Get the top 2 comments for the prompt
+        top_comments = db.query(models.PostComment).filter(
+            models.PostComment.prompt_id == prompt.id,
+            models.PostComment.prompt_type == prompt.prompt_type
+        ).order_by(models.PostComment.created_at.desc()).limit(2).all()
+
+        # Get the total number of likes for the prompt
+        total_likes = db.query(models.PostLike).filter(
+            models.PostLike.prompt_id == prompt.id,
+            models.PostLike.prompt_type == prompt.prompt_type
+        ).count()
+
+        feed.append({
+            "ipfs_image_url": prompt.ipfs_image_url,
+            "prompt": prompt.prompt,
+            "account_address": prompt.account_address,
+            "post_name": prompt.post_name,
+            "likes_count": total_likes,
+            "comments_count": total_comments,
+            "top_comments": [
+                {
+                    "user_account": comment.user_account,
+                    "comment": comment.comment,
+                    "created_at": comment.created_at
+                } for comment in top_comments
+            ],
+            "public": prompt.public
+        })
+
     return {
-        "results": [
-            {
-                "ipfs_image_url": prompt.ipfs_image_url,
-                "prompt": prompt.prompt,
-                "account_address": prompt.account_address,
-                "post_name": prompt.post_name,
-                "likes": len(prompt.likes),  # Get the number of likes
-                "comments": len(prompt.comments),  # Get the number of comments
-                "public": prompt.public
-            }
-            for prompt in paginated_prompts
-        ],
+        "results": feed,
         "total": total_prompts,
         "page": page,
         "page_size": page_size
     }
+
 
