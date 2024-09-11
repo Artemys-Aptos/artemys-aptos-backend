@@ -11,19 +11,22 @@ from app.socialfeed.services import update_user_stats
 router = APIRouter()
 
 
-@router.post("/add-public-prompts/")
+@router.post("/add-public-prompts/", response_model=schemas.PublicPromptResponse)
 def add_public_prompt(prompt_data: schemas.PublicPromptCreate, db: Session = Depends(get_session)):
-    # Ensure it is a public prompt
-    if prompt_data.collection_name or prompt_data.max_supply or prompt_data.prompt_nft_price:
-        raise HTTPException(status_code=400, detail="Public prompts cannot have collection_name, max_supply, or prompt_nft_price.")
+    """
+    Endpoint to create a new public prompt.
+    """
+    # Ensure we don't have premium-specific fields
+    if hasattr(prompt_data, "collection_name") or hasattr(prompt_data, "max_supply") or hasattr(prompt_data, "prompt_nft_price"):
+        raise HTTPException(status_code=400, detail="Public prompts should not have premium-specific fields.")
 
-    # Create public prompt
+    # Create the public prompt
     new_prompt = models.Prompt(
         ipfs_image_url=prompt_data.ipfs_image_url,
         prompt=prompt_data.prompt,
         account_address=prompt_data.account_address,
         post_name=prompt_data.post_name,
-        public=prompt_data.public,
+        public=True,  # Always true for public prompts
         prompt_tag=prompt_data.prompt_tag,
         prompt_type=models.PromptTypeEnum.PUBLIC
     )
