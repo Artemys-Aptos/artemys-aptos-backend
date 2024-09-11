@@ -26,11 +26,17 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
     - **max_supply**: Maximum supply for the NFT.
     - **prompt_nft_price**: Price of the NFT in the collection.
     """
+    if not premium_data.prompt_tag:
+        raise HTTPException(status_code=400, detail="prompt_tag is required")
+
     new_premium_prompt = models.Prompt(
         ipfs_image_url=premium_data.ipfs_image_url,
+        prompt=premium_data.prompt,
+        post_name=premium_data.post_name,
+        prompt_tag=premium_data.prompt_tag,  # Make sure this is included
         prompt_type=models.PromptTypeEnum.PREMIUM,
         account_address=premium_data.account_address,
-        public=False, 
+        public=False,
         collection_name=premium_data.collection_name,
         max_supply=premium_data.max_supply,
         prompt_nft_price=premium_data.prompt_nft_price
@@ -50,10 +56,9 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
         public=new_premium_prompt.public,
         collection_name=new_premium_prompt.collection_name,
         max_supply=new_premium_prompt.max_supply,
-        prompt_nft_price=new_premium_prompt.prompt_nft_price,
-        likes=new_premium_prompt.likes,
-        comments=new_premium_prompt.comments
+        prompt_nft_price=new_premium_prompt.prompt_nft_price
     )
+
 
 
 

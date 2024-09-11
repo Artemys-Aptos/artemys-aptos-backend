@@ -1,14 +1,18 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from app.core.enums.tags import PromptTagEnum
 from app.core.enums.premium_filters import PremiumPromptFilterType
 
 class PremiumPromptCreate(BaseModel):
     ipfs_image_url: str
     account_address: str
+    prompt: str
+    post_name: str
     # public: bool
+    prompt_tag: PromptTagEnum
     collection_name: str
     max_supply: int
-    prompt_nft_price: str
+    prompt_nft_price: int
 
     class Config:
         orm_mode = True
@@ -19,9 +23,7 @@ class PremiumPromptResponse(BaseModel):
     public: bool
     collection_name: str
     max_supply: int
-    prompt_nft_price: str
-    likes: int = 0  # Number of likes
-    comments: int = 0  # Number of comments
+    prompt_nft_price: int
 
     class Config:
         orm_mode = True
