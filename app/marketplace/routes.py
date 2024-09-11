@@ -33,9 +33,7 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
         public=False, 
         collection_name=premium_data.collection_name,
         max_supply=premium_data.max_supply,
-        prompt_nft_price=premium_data.prompt_nft_price,
-        likes=0,
-        comments=0
+        prompt_nft_price=premium_data.prompt_nft_price
     )
 
     db.add(new_premium_prompt)
