@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
-
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.socialfeed.routes import router as socialfeed_router
 from app.prompts.routes import router as prompts_router
@@ -9,6 +9,14 @@ from app.marketplace.routes import router as marketplace_router
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
