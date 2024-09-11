@@ -20,3 +20,7 @@ class Prompt(Base):
     max_supply = Column(Integer, nullable=True)  # Only relevant for PREMIUM prompts
     prompt_nft_price = Column(Float, nullable=True)  # Only relevant for PREMIUM prompts
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    comments = relationship('PostComment', back_populates='prompt', cascade="all, delete-orphan")
+    likes = relationship('PostLike', back_populates='prompt', cascade="all, delete-orphan")

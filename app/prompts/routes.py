@@ -37,7 +37,15 @@ def add_public_prompt(prompt_data: schemas.PublicPromptCreate, db: Session = Dep
     # Update user stats (generation count and XP)
     update_user_stats(prompt_data.account_address, db)
 
-    return {"message": "Public prompt created", "prompt": new_prompt}
+    # Return the created prompt serialized into the response model
+    return schemas.PublicPromptResponse(
+        ipfs_image_url=new_prompt.ipfs_image_url,
+        prompt=new_prompt.prompt,
+        account_address=new_prompt.account_address,
+        post_name=new_prompt.post_name,
+        public=new_prompt.public,
+        prompt_tag=new_prompt.prompt_tag
+    )
 
 
 @router.get("/prompt-tags/")

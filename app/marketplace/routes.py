@@ -41,10 +41,22 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
     db.add(new_premium_prompt)
     db.commit()
     db.refresh(new_premium_prompt)
+
     # Update user stats (generation count and XP)
     update_user_stats(new_premium_prompt.account_address, db)
 
-    return new_premium_prompt
+    # Return the response using the Pydantic model schema
+    return schemas.PremiumPromptResponse(
+        ipfs_image_url=new_premium_prompt.ipfs_image_url,
+        account_address=new_premium_prompt.account_address,
+        public=new_premium_prompt.public,
+        collection_name=new_premium_prompt.collection_name,
+        max_supply=new_premium_prompt.max_supply,
+        prompt_nft_price=new_premium_prompt.prompt_nft_price,
+        likes=new_premium_prompt.likes,
+        comments=new_premium_prompt.comments
+    )
+
 
 
 

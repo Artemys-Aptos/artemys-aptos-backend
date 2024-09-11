@@ -12,8 +12,8 @@ def update_user_stats(user_account: str, db: Session):
     user_stat = db.query(models.UserStats).filter(models.UserStats.user_account == user_account).first()
     
     if not user_stat:
-        # Create new user stat if not present
-        user_stat = models.UserStats(user_account=user_account)
+        # Create new user stat if not present with default values for xp and generations
+        user_stat = models.UserStats(user_account=user_account, xp=0, total_generations=0, streak_days=0)
         db.add(user_stat)
     
     # Calculate XP
@@ -36,3 +36,4 @@ def update_user_stats(user_account: str, db: Session):
     user_stat.last_generation = datetime.utcnow()
 
     db.commit()
+

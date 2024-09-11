@@ -207,8 +207,8 @@ def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Sessi
                 "prompt": prompt.prompt,
                 "account_address": prompt.account_address,
                 "post_name": prompt.post_name,
-                "likes": prompt.likes,
-                "comments": prompt.comments,
+                "likes": len(prompt.likes),  # Get the number of likes
+                "comments": len(prompt.comments),  # Get the number of comments
                 "public": prompt.public
             }
             for prompt in paginated_prompts
@@ -217,3 +217,4 @@ def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Sessi
         "page": page,
         "page_size": page_size
     }
+
