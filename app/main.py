@@ -6,6 +6,8 @@ from app.socialfeed.routes import router as socialfeed_router
 from app.prompts.routes import router as prompts_router
 from app.leaderboard.routes import router as leaderboard_router
 from app.marketplace.routes import router as marketplace_router
+from app.encrypt.routes import router as encrypt_router
+
 
 
 app = FastAPI()
@@ -35,8 +37,7 @@ app.include_router(socialfeed_router, prefix="/socialfeed")
 app.include_router(prompts_router, prefix="/prompts")
 app.include_router(leaderboard_router, prefix="/leaderboard")
 app.include_router(marketplace_router, prefix="/marketplace")
-
-
+# app.include_router(encrypt_router, prefix="/encrypt")
 
 if __name__ == "__main__":
     import uvicorn

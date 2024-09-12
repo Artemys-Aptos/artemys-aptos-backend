@@ -17,11 +17,11 @@ class CommentResponse(BaseModel):
     comment: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CommentsListResponse(BaseModel):
     comments: List[CommentResponse]
     total_comments: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

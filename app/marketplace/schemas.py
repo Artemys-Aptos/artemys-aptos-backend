@@ -15,7 +15,7 @@ class PremiumPromptCreate(BaseModel):
     prompt_nft_price: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PremiumPromptResponse(BaseModel):
@@ -29,7 +29,7 @@ class PremiumPromptResponse(BaseModel):
     comments: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PremiumPromptListResponse(BaseModel):
@@ -39,7 +39,7 @@ class PremiumPromptListResponse(BaseModel):
     page_size: int  # Number of prompts per page
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PremiumPromptFilterRequest(BaseModel):
     filter_type: Optional[PremiumPromptFilterType] = Field(None, description="Filter by 'recent', 'popular', or 'trending'")

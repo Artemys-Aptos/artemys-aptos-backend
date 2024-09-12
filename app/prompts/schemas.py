@@ -11,7 +11,7 @@ class PublicPromptCreate(BaseModel):
     prompt_tag: PromptTagEnum
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PublicPromptResponse(BaseModel):
@@ -25,7 +25,7 @@ class PublicPromptResponse(BaseModel):
     comments_count: int  # Add comments count
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PublicPromptListResponse(BaseModel):
@@ -35,7 +35,7 @@ class PublicPromptListResponse(BaseModel):
     page_size: int  # Number of prompts per page
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PublicPromptFilterRequest(BaseModel):

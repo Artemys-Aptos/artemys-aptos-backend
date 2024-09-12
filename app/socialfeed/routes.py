@@ -209,6 +209,88 @@ def unfollow_creator(follower_account: str, creator_account: str, db: Session = 
     return {"message": "Successfully unfollowed the creator"}
 
 
+@router.get("/creator-followers/")
+def get_creator_followers(creator_account: str, db: Session = Depends(get_session)):
+    """
+    Get a list of followers for a specific creator along with their top 5 most liked prompts.
+    
+    - **creator_account**: The account of the creator whose followers are being retrieved.
+    """
+    followers = db.query(models.Follow).filter(models.Follow.creator_account == creator_account).all()
+
+    if not followers:
+        return {"message": "This creator has no followers"}
+
+    result = []
+    for follow in followers:
+        # Get follower's top 5 most liked prompts
+        prompts = (
+            db.query(Prompt, func.count(models.PostLike.id).label('likes_count'))
+            .outerjoin(models.PostLike, models.PostLike.prompt_id == Prompt.id)
+            .filter(Prompt.account_address == follow.follower_account)
+            .group_by(Prompt.id)
+            .order_by(func.count(models.PostLike.id).desc())  # Sort by the number of likes
+            .limit(5)
+            .all()
+        )
+
+        result.append({
+            "follower_account": follow.follower_account,
+            "top_5_prompts": [
+                {
+                    "prompt": prompt.prompt,
+                    "likes": likes_count,
+                    "comments": len(prompt.comments),
+                    "created_at": prompt.created_at
+                } for prompt, likes_count in prompts
+            ]
+        })
+
+    return {"creator_account": creator_account, "followers_with_top_prompts": result}
+
+
+
+@router.get("/user-following/")
+def get_user_following(follower_account: str, db: Session = Depends(get_session)):
+    """
+    Get a list of creators a user is following along with their top 5 most liked prompts.
+    
+    - **follower_account**: The account of the user whose following list is being retrieved.
+    """
+    following = db.query(models.Follow).filter(models.Follow.follower_account == follower_account).all()
+
+    if not following:
+        return {"message": "This user is not following any creators"}
+
+    result = []
+    for follow in following:
+        # Get the top 5 most liked prompts for the creator being followed
+        prompts = (
+            db.query(Prompt, func.count(models.PostLike.id).label('likes_count'))
+            .outerjoin(models.PostLike, models.PostLike.prompt_id == Prompt.id)
+            .filter(Prompt.account_address == follow.creator_account)
+            .group_by(Prompt.id)
+            .order_by(func.count(models.PostLike.id).desc())
+            .limit(5)
+            .all()
+        )
+
+        result.append({
+            "creator_account": follow.creator_account,
+            "top_5_prompts": [
+                {
+                    "prompt": prompt.prompt,
+                    "likes": likes_count,
+                    "comments": len(prompt.comments),
+                    "created_at": prompt.created_at
+                } for prompt, likes_count in prompts
+            ]
+        })
+
+    return {"follower_account": follower_account, "following_with_top_prompts": result}
+
+
+
 @router.get("/feed/")
 def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
     """
@@ -282,3 +364,101 @@ def social_feed(user_account: str, page: int = 1, page_size: int = 10, db: Sessi
     }
 
 
+
+@router.get("/feed/followers/")
+def get_feed_for_followers(user_account: str, db: Session = Depends(get_session), page: int = 1, page_size: int = 10):
+    """
+    Get a randomized feed consisting of the prompts from accounts following a given user.
+    
+    - **user_account**: The account of the user to get the followers' feed for.
+    - **page**: Page number for pagination.
+    - **page_size**: Number of prompts per page.
+    """
+    followers = db.query(models.Follow.follower_account).filter(models.Follow.creator_account == user_account).all()
+    followers_accounts = [follower.follower_account for follower in followers]
+
+    # Fetch prompts from followers with random ordering
+    query = db.query(Prompt).filter(Prompt.account_address.in_(followers_accounts)).order_by(func.random())
+    total_prompts = query.count()
+    paginated_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    feed = []
+    for prompt in paginated_prompts:
+        feed.append({
+            "prompt": prompt.prompt,
+            "likes": len(prompt.likes),
+            "comments": len(prompt.comments),
+            "created_at": prompt.created_at,
+            "account_address": prompt.account_address
+        })
+
+    return {"total": total_prompts, "page": page, "page_size": page_size, "feed": feed}
+
+
+@router.get("/feed/following/")
+def get_feed_for_following(user_account: str, db: Session = Depends(get_session), page: int = 1, page_size: int = 10):
+    """
+    Get a randomized feed consisting of the prompts from accounts the user is following.
+    
+    - **user_account**: The account of the user to get the following feed for.
+    - **page**: Page number for pagination.
+    - **page_size**: Number of prompts per page.
+    """
+    following = db.query(models.Follow.creator_account).filter(models.Follow.follower_account == user_account).all()
+    following_accounts = [follow.creator_account for follow in following]
+
+    # Fetch prompts from the creators the user is following with random ordering
+    query = db.query(Prompt).filter(Prompt.account_address.in_(following_accounts)).order_by(func.random())
+    total_prompts = query.count()
+    paginated_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    feed = []
+    for prompt in paginated_prompts:
+        feed.append({
+            "prompt": prompt.prompt,
+            "likes": len(prompt.likes),
+            "comments": len(prompt.comments),
+            "created_at": prompt.created_at,
+            "account_address": prompt.account_address
+        })
+
+    return {"total": total_prompts, "page": page, "page_size": page_size, "feed": feed}
+
+
+
+@router.get("/feed/combined/")
+def get_combined_feed(user_account: str, db: Session = Depends(get_session), page: int = 1, page_size: int = 10):
+    """
+    Get a randomized combined feed consisting of prompts from both the user's followers and the accounts the user is following.
+    
+    - **user_account**: The account of the user to get the combined feed for.
+    - **page**: Page number for pagination.
+    - **page_size**: Number of prompts per page.
+    """
+    # Get followers' accounts
+    followers = db.query(models.Follow.follower_account).filter(models.Follow.creator_account == user_account).all()
+    followers_accounts = [follower.follower_account for follower in followers]
+
+    # Get following accounts
+    following = db.query(models.Follow.creator_account).filter(models.Follow.follower_account == user_account).all()
+    following_accounts = [follow.creator_account for follow in following]
+
+    # Combine followers and following accounts
+    all_accounts = list(set(followers_accounts + following_accounts))
+
+    # Fetch prompts from all combined accounts with random ordering
+    query = db.query(Prompt).filter(Prompt.account_address.in_(all_accounts)).order_by(func.random())
+    total_prompts = query.count()
+    paginated_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    feed = []
+    for prompt in paginated_prompts:
+        feed.append({
+            "prompt": prompt.prompt,
+            "likes": len(prompt.likes),
+            "comments": len(prompt.comments),
+            "created_at": prompt.created_at,
+            "account_address": prompt.account_address
+        })
+
+    return {"total": total_prompts, "page": page, "page_size": page_size, "feed": feed}

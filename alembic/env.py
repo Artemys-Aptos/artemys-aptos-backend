@@ -12,7 +12,7 @@ from app.core.database import SQLALCHEMY_DATABASE_URL, Base
 from app.prompts.models import *
 from app.leaderboard.models import *
 from app.socialfeed.models import *
-
+from app.encrypt.models import *
 from alembic import context
 
 config = context.config
