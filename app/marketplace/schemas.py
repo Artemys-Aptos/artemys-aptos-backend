@@ -12,10 +12,11 @@ class PremiumPromptCreate(BaseModel):
     prompt_tag: PromptTagEnum
     collection_name: str
     max_supply: int
-    prompt_nft_price: int
+    prompt_nft_price: float
 
     class Config:
         orm_mode = True
+
 
 class PremiumPromptResponse(BaseModel):
     ipfs_image_url: str
@@ -23,10 +24,13 @@ class PremiumPromptResponse(BaseModel):
     public: bool
     collection_name: str
     max_supply: int
-    prompt_nft_price: int
+    prompt_nft_price: float
+    likes: int
+    comments: int
 
     class Config:
         orm_mode = True
+
 
 class PremiumPromptListResponse(BaseModel):
     prompts: list[PremiumPromptResponse]

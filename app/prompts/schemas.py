@@ -21,11 +21,13 @@ class PublicPromptResponse(BaseModel):
     post_name: str
     public: bool
     prompt_tag: PromptTagEnum
+    likes_count: int  # Add likes count
+    comments_count: int  # Add comments count
 
     class Config:
         orm_mode = True
 
-# This schema will represent a list of public prompts
+
 class PublicPromptListResponse(BaseModel):
     prompts: List[PublicPromptResponse]
     total: int  # Total number of prompts available

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from . import schemas, services, models
+from app.socialfeed import models as socialfeed_models
 from app.core.helpers import paginate
 from app.socialfeed.services import update_user_stats
 
@@ -68,19 +69,28 @@ def get_public_prompts(page: int = 1, page_size: int = 10, db: Session = Depends
     # Apply pagination
     public_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
     
-    # Return the list wrapped in the `PublicPromptListResponse` schema
-    return schemas.PublicPromptListResponse(
-        prompts=[
+    # For each prompt, count the number of likes and comments
+    prompts_with_counts = []
+    for prompt in public_prompts:
+        likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == prompt.id).count()
+        comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == prompt.id).count()
+        
+        prompts_with_counts.append(
             schemas.PublicPromptResponse(
                 ipfs_image_url=prompt.ipfs_image_url,
                 prompt=prompt.prompt,
                 account_address=prompt.account_address,
                 post_name=prompt.post_name,
                 public=prompt.public,
-                prompt_tag=prompt.prompt_tag
+                prompt_tag=prompt.prompt_tag,
+                likes_count=likes_count,
+                comments_count=comments_count
             )
-            for prompt in public_prompts
-        ],
+        )
+    
+    # Return the list wrapped in the `PublicPromptListResponse` schema
+    return schemas.PublicPromptListResponse(
+        prompts=prompts_with_counts,
         total=total_prompts,
         page=page,
         page_size=page_size
@@ -112,6 +122,7 @@ def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, db: Se
     total_prompts = query.count()
     paginated_prompts = paginate(query, filter_data.page, filter_data.page_size)
 
+    # Return the prompts with likes and comments count
     return schemas.PublicPromptListResponse(
         prompts=[
             schemas.PublicPromptResponse(
@@ -120,7 +131,9 @@ def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, db: Se
                 account_address=prompt.account_address,
                 post_name=prompt.post_name,
                 public=prompt.public,
-                prompt_tag=prompt.prompt_tag
+                prompt_tag=prompt.prompt_tag,
+                likes_count=db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == prompt.id).count(),
+                comments_count=db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == prompt.id).count()
             )
             for prompt in paginated_prompts
         ],
@@ -128,4 +141,3 @@ def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, db: Se
         page=filter_data.page,
         page_size=filter_data.page_size
     )
- 
