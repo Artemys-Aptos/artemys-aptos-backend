@@ -247,6 +247,8 @@ async def get_creator_followers(creator_account: str, db: Session = Depends(get_
             "top_5_prompts": [
                 {
                     "prompt": prompt.prompt,
+                    "prompt_id": prompt.id,
+                    "ipfs_image_url": prompt.ipfs_image_url,
                     "likes": likes_count,
                     "comments": len(prompt.comments),
                     "created_at": prompt.created_at
@@ -288,6 +290,8 @@ async def get_user_following(follower_account: str, db: Session = Depends(get_se
             "top_5_prompts": [
                 {
                     "prompt": prompt.prompt,
+                    "prompt_id": prompt.id,
+                    "ipfs_image_url": prompt.ipfs_image_url,
                     "likes": likes_count,
                     "comments": len(prompt.comments),
                     "created_at": prompt.created_at
@@ -388,7 +392,9 @@ async def social_feed(user_account: str, page: int = 1, page_size: int = 10, db:
         # Append the prompt data
         feed.append({
             "ipfs_image_url": prompt.ipfs_image_url,
+            "prompt_id": prompt.id,
             "prompt": prompt.prompt,
+            "prompt_type": prompt.prompt_type,
             "account_address": prompt.account_address,
             "post_name": prompt.post_name,
             "likes_count": likes_count,
@@ -440,17 +446,47 @@ async def get_feed_for_followers(user_account: str, db: Session = Depends(get_se
         .all()
     )
 
+    # Fetch top 2 comments for each prompt in a single batch query
+    top_comments_data = (
+        db.query(
+            models.PostComment.prompt_id,
+            models.PostComment.user_account,
+            models.PostComment.comment,
+            models.PostComment.created_at
+        )
+        .filter(models.PostComment.prompt_id.in_(prompt_ids))
+        .order_by(models.PostComment.prompt_id, models.PostComment.created_at.desc())
+        .limit(2 * len(prompt_ids))
+        .all()
+    )
+
+     # Convert top_comments_data to a more usable structure (group by prompt_id)
+    from collections import defaultdict
+    top_comments_by_prompt = defaultdict(list)
+    for comment in top_comments_data:
+        top_comments_by_prompt[comment.prompt_id].append({
+            "user_account": comment.user_account,
+            "comment": comment.comment,
+            "created_at": comment.created_at
+        })
+
     feed = []
     for prompt in paginated_prompts:
         # Get likes and comments data for the prompt
         likes_comments = next((lc for lc in likes_comments_data if lc[0] == prompt.id), None)
         likes_count = likes_comments.likes_count if likes_comments else 0
         comments_count = likes_comments.comments_count if likes_comments else 0
+        # Get top 2 comments for the prompt
+        top_comments = top_comments_by_prompt[prompt.id][:2]
 
         feed.append({
+            "ipfs_image_url": prompt.ipfs_image_url,
+            "prompt_id": prompt.id,
             "prompt": prompt.prompt,
+            "prompt_type": prompt.prompt_type,
             "likes": likes_count,
             "comments": comments_count,
+            "top_comments": top_comments,
             "created_at": prompt.created_at,
             "account_address": prompt.account_address
         })
@@ -493,17 +529,47 @@ async def get_feed_for_following(user_account: str, db: Session = Depends(get_se
         .all()
     )
 
+    # Fetch top 2 comments for each prompt in a single batch query
+    top_comments_data = (
+        db.query(
+            models.PostComment.prompt_id,
+            models.PostComment.user_account,
+            models.PostComment.comment,
+            models.PostComment.created_at
+        )
+        .filter(models.PostComment.prompt_id.in_(prompt_ids))
+        .order_by(models.PostComment.prompt_id, models.PostComment.created_at.desc())
+        .limit(2 * len(prompt_ids))
+        .all()
+    )
+
+     # Convert top_comments_data to a more usable structure (group by prompt_id)
+    from collections import defaultdict
+    top_comments_by_prompt = defaultdict(list)
+    for comment in top_comments_data:
+        top_comments_by_prompt[comment.prompt_id].append({
+            "user_account": comment.user_account,
+            "comment": comment.comment,
+            "created_at": comment.created_at
+        })
+
     feed = []
     for prompt in paginated_prompts:
         # Get likes and comments data for the prompt
         likes_comments = next((lc for lc in likes_comments_data if lc[0] == prompt.id), None)
         likes_count = likes_comments.likes_count if likes_comments else 0
         comments_count = likes_comments.comments_count if likes_comments else 0
+        # Get top 2 comments for the prompt
+        top_comments = top_comments_by_prompt[prompt.id][:2]
 
         feed.append({
+            "ipfs_image_url": prompt.ipfs_image_url,
+            "prompt_id": prompt.id,
             "prompt": prompt.prompt,
+            "prompt_type": prompt.prompt_type,
             "likes": likes_count,
             "comments": comments_count,
+            "top_comments": top_comments,
             "created_at": prompt.created_at,
             "account_address": prompt.account_address
         })
@@ -553,17 +619,48 @@ async def get_combined_feed(user_account: str, db: Session = Depends(get_session
         .all()
     )
 
+    # Fetch top 2 comments for each prompt in a single batch query
+    top_comments_data = (
+        db.query(
+            models.PostComment.prompt_id,
+            models.PostComment.user_account,
+            models.PostComment.comment,
+            models.PostComment.created_at
+        )
+        .filter(models.PostComment.prompt_id.in_(prompt_ids))
+        .order_by(models.PostComment.prompt_id, models.PostComment.created_at.desc())
+        .limit(2 * len(prompt_ids))
+        .all()
+    )
+
+    # Convert top_comments_data to a more usable structure (group by prompt_id)
+    from collections import defaultdict
+    top_comments_by_prompt = defaultdict(list)
+    for comment in top_comments_data:
+        top_comments_by_prompt[comment.prompt_id].append({
+            "user_account": comment.user_account,
+            "comment": comment.comment,
+            "created_at": comment.created_at
+        })
+
+
     feed = []
     for prompt in paginated_prompts:
         # Get likes and comments data for the prompt
         likes_comments = next((lc for lc in likes_comments_data if lc[0] == prompt.id), None)
         likes_count = likes_comments.likes_count if likes_comments else 0
         comments_count = likes_comments.comments_count if likes_comments else 0
+        # Get top 2 comments for the prompt
+        top_comments = top_comments_by_prompt[prompt.id][:2]
 
         feed.append({
+            "ipfs_image_url": prompt.ipfs_image_url,
+            "prompt_id": prompt.id,
             "prompt": prompt.prompt,
+            "prompt_type": prompt.prompt_type,
             "likes": likes_count,
             "comments": comments_count,
+            "top_comments": top_comments,
             "created_at": prompt.created_at,
             "account_address": prompt.account_address
         })
