@@ -39,7 +39,7 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
         prompt=premium_data.prompt,
         post_name=premium_data.post_name,
         cid=premium_data.cid,
-        prompt_tag=premium_data.prompt_tag,  # Make sure this is included
+        prompt_tag=premium_data.prompt_tag,  # Ensure this is included
         prompt_type=models.PromptTypeEnum.PREMIUM,
         account_address=premium_data.account_address,
         public=False,
@@ -61,6 +61,8 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
     return schemas.PremiumPromptResponse(
         id=new_premium_prompt.id,
         ipfs_image_url=new_premium_prompt.ipfs_image_url,
+        prompt=new_premium_prompt.prompt,  # Add the prompt field
+        post_name=new_premium_prompt.post_name,  # Add the post_name field
         account_address=new_premium_prompt.account_address,
         public=new_premium_prompt.public,
         cid=new_premium_prompt.cid,
@@ -70,6 +72,7 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
         likes=likes_count,
         comments=comments_count
     )
+
 
 
 
