@@ -15,6 +15,7 @@ class PublicPromptCreate(BaseModel):
 
 
 class PublicPromptResponse(BaseModel):
+    id: int
     ipfs_image_url: str
     prompt: str
     account_address: str

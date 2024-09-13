@@ -19,6 +19,7 @@ class PremiumPromptCreate(BaseModel):
 
 
 class PremiumPromptResponse(BaseModel):
+    id: int
     ipfs_image_url: str
     account_address: str
     public: bool
