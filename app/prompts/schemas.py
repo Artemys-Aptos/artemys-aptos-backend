@@ -21,8 +21,8 @@ class PublicPromptResponse(BaseModel):
     post_name: str
     public: bool
     prompt_tag: PromptTagEnum
-    likes_count: int  # Add likes count
-    comments_count: int  # Add comments count
+    likes_count: Optional[int]  # Add likes count
+    comments_count: Optional[int]  # Add comments count
 
     class Config:
         from_attributes = True

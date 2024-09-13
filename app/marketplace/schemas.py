@@ -25,8 +25,8 @@ class PremiumPromptResponse(BaseModel):
     collection_name: str
     max_supply: int
     prompt_nft_price: float
-    likes: int
-    comments: int
+    likes: Optional[int]
+    comments: Optional[int]
 
     class Config:
         from_attributes = True
