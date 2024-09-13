@@ -6,7 +6,7 @@ class UserStats(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_account = Column(String, unique=True, nullable=False)
-    xp = Column(Integer, default=0)  # Initialize XP to 0
-    total_generations = Column(Integer, default=0)  # Initialize total_generations to 0
-    streak_days = Column(Integer, default=0)  # Initialize streak_days to 0
-    last_generation = Column(DateTime, nullable=True)  # Can be null initially
+    xp = Column(Integer, default=0, index=True)  # Initialize XP to 0
+    total_generations = Column(Integer, default=0, index=True)  # Initialize total_generations to 0
+    streak_days = Column(Integer, default=0, index=True)  # Initialize streak_days to 0
+    last_generation = Column(DateTime, nullable=True, index=True)  # Can be null initially
