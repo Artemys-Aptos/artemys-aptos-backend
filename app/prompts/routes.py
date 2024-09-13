@@ -17,37 +17,44 @@ async def add_public_prompt(public_data: schemas.PublicPromptCreate, db: Session
     """
     Add a new public prompt to the database.
     """
-    # Create a new public prompt
-    new_prompt = models.Prompt(
-        ipfs_image_url=public_data.ipfs_image_url,
-        prompt=public_data.prompt,
-        account_address=public_data.account_address,
-        post_name=public_data.post_name,
-        public=True,
-        prompt_tag=public_data.prompt_tag,
-        prompt_type=models.PromptTypeEnum.PUBLIC
-    )
+    try:
+        # Create a new public prompt
+        new_prompt = models.Prompt(
+            ipfs_image_url=public_data.ipfs_image_url,
+            prompt=public_data.prompt,
+            account_address=public_data.account_address,
+            post_name=public_data.post_name,
+            public=True,
+            prompt_tag=public_data.prompt_tag,
+            prompt_type=models.PromptTypeEnum.PUBLIC
+        )
 
-    db.add(new_prompt)
-    db.commit()
-    db.refresh(new_prompt)
+        db.add(new_prompt)
+        db.commit()
+        db.refresh(new_prompt)
 
-    # Count likes and comments (initially they are 0 since it's a new prompt)
-    likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == new_prompt.id).count()
-    comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == new_prompt.id).count()
+        # Count likes and comments (initially they are 0 since it's a new prompt)
+        likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == new_prompt.id).count()
+        comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == new_prompt.id).count()
 
-    # Return the response
-    return schemas.PublicPromptResponse(
-        id=new_prompt.id,
-        ipfs_image_url=new_prompt.ipfs_image_url,
-        prompt=new_prompt.prompt,
-        account_address=new_prompt.account_address,
-        post_name=new_prompt.post_name,
-        public=new_prompt.public,
-        prompt_tag=new_prompt.prompt_tag,
-        likes_count=likes_count,
-        comments_count=comments_count
-    )
+        # Return the response
+        return schemas.PublicPromptResponse(
+            id=new_prompt.id,
+            ipfs_image_url=new_prompt.ipfs_image_url,
+            prompt=new_prompt.prompt,
+            account_address=new_prompt.account_address,
+            post_name=new_prompt.post_name,
+            public=new_prompt.public,
+            prompt_tag=new_prompt.prompt_tag,
+            likes_count=likes_count,
+            comments_count=comments_count
+        )
+    except Exception as e:
+        detail = {
+            "info": "Failed to add public prompt",
+            "error": str(e),
+        }
+        raise HTTPException(status_code=500, detail=detail)
 
 
 
@@ -56,8 +63,15 @@ async def get_prompt_tags():
     """
     Get all available prompt tags.
     """
-    prompt_tags = [tag.value for tag in models.PromptTagEnum]
-    return {"prompt_tags": prompt_tags}
+    try:
+        prompt_tags = [tag.value for tag in models.PromptTagEnum]
+        return {"prompt_tags": prompt_tags}
+    except Exception as e:
+        detail = {
+            "info": "Failed to get prompt tags",
+            "error": str(e),
+        }
+        raise HTTPException(status_code=500, detail=detail)
 
 
 @router.get("/get-public-prompts/", response_model=schemas.PublicPromptListResponse)

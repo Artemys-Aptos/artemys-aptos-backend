@@ -34,45 +34,51 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
     if not premium_data.prompt_tag:
         raise HTTPException(status_code=400, detail="prompt_tag is required")
 
-    new_premium_prompt = models.Prompt(
-        ipfs_image_url=premium_data.ipfs_image_url,
-        prompt=premium_data.prompt,
-        post_name=premium_data.post_name,
-        cid=premium_data.cid,
-        prompt_tag=premium_data.prompt_tag,  # Ensure this is included
-        prompt_type=models.PromptTypeEnum.PREMIUM,
-        account_address=premium_data.account_address,
-        public=False,
-        collection_name=premium_data.collection_name,
-        max_supply=premium_data.max_supply,
-        prompt_nft_price=premium_data.prompt_nft_price
-    )
+    try:
+        new_premium_prompt = models.Prompt(
+            ipfs_image_url=premium_data.ipfs_image_url,
+            prompt=premium_data.prompt,
+            post_name=premium_data.post_name,
+            cid=premium_data.cid,
+            prompt_tag=premium_data.prompt_tag,  # Ensure this is included
+            prompt_type=models.PromptTypeEnum.PREMIUM,
+            account_address=premium_data.account_address,
+            public=False,
+            collection_name=premium_data.collection_name,
+            max_supply=premium_data.max_supply,
+            prompt_nft_price=premium_data.prompt_nft_price
+        )
 
-    db.add(new_premium_prompt)
-    db.commit()
-    db.refresh(new_premium_prompt)
+        db.add(new_premium_prompt)
+        db.commit()
+        db.refresh(new_premium_prompt)
 
-    # Update user stats (generation count and XP)
-    update_user_stats(new_premium_prompt.account_address, db)
-    likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == new_premium_prompt.id).count()
-    comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == new_premium_prompt.id).count()
+        # Update user stats (generation count and XP)
+        update_user_stats(new_premium_prompt.account_address, db)
+        likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == new_premium_prompt.id).count()
+        comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == new_premium_prompt.id).count()
 
-    # Return the response using the Pydantic model schema
-    return schemas.PremiumPromptResponse(
-        id=new_premium_prompt.id,
-        ipfs_image_url=new_premium_prompt.ipfs_image_url,
-        prompt=new_premium_prompt.prompt,  # Add the prompt field
-        post_name=new_premium_prompt.post_name,  # Add the post_name field
-        account_address=new_premium_prompt.account_address,
-        public=new_premium_prompt.public,
-        cid=new_premium_prompt.cid,
-        collection_name=new_premium_prompt.collection_name,
-        max_supply=new_premium_prompt.max_supply,
-        prompt_nft_price=new_premium_prompt.prompt_nft_price,
-        likes=likes_count,
-        comments=comments_count
-    )
-
+        # Return the response using the Pydantic model schema
+        return schemas.PremiumPromptResponse(
+            id=new_premium_prompt.id,
+            ipfs_image_url=new_premium_prompt.ipfs_image_url,
+            prompt=new_premium_prompt.prompt,  # Add the prompt field
+            post_name=new_premium_prompt.post_name,  # Add the post_name field
+            account_address=new_premium_prompt.account_address,
+            public=new_premium_prompt.public,
+            cid=new_premium_prompt.cid,
+            collection_name=new_premium_prompt.collection_name,
+            max_supply=new_premium_prompt.max_supply,
+            prompt_nft_price=new_premium_prompt.prompt_nft_price,
+            likes=likes_count,
+            comments=comments_count
+        )
+    except Exception as e:
+        detail = {
+            "info": "Failed to add premium prompt",
+            "error": str(e),
+        }
+        raise HTTPException(status_code=500, detail=detail)
 
 
 
@@ -81,40 +87,50 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
 
 @router.get("/get-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
 async def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
-    # Query for premium prompts and order by created_at in descending order
-    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM).order_by(models.Prompt.created_at.desc())
+    """
+    Get all premium prompts.
+    """
+    try:
+        # Query for premium prompts and order by created_at in descending order
+        query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM).order_by(models.Prompt.created_at.desc())
     
-    total_prompts = query.count()
-    paginated_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
+        total_prompts = query.count()
+        paginated_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
 
-    prompts_with_counts = []
-    for prompt in paginated_prompts:
-        likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == prompt.id).count()
-        comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == prompt.id).count()
+        prompts_with_counts = []
+        for prompt in paginated_prompts:
+            likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == prompt.id).count()
+            comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == prompt.id).count()
 
-        prompts_with_counts.append(
-            schemas.PremiumPromptResponse(
-                id=prompt.id,
-                ipfs_image_url=prompt.ipfs_image_url,
-                prompt=prompt.prompt,
-                post_name=prompt.post_name,
-                cid=prompt.cid,
-                account_address=prompt.account_address,
-                public=prompt.public,
-                collection_name=prompt.collection_name,
-                max_supply=prompt.max_supply,
-                prompt_nft_price=prompt.prompt_nft_price,
-                likes=likes_count,
-                comments=comments_count
+            prompts_with_counts.append(
+                schemas.PremiumPromptResponse(
+                    id=prompt.id,
+                    ipfs_image_url=prompt.ipfs_image_url,
+                    prompt=prompt.prompt,
+                    post_name=prompt.post_name,
+                    cid=prompt.cid,
+                    account_address=prompt.account_address,
+                    public=prompt.public,
+                    collection_name=prompt.collection_name,
+                    max_supply=prompt.max_supply,
+                    prompt_nft_price=prompt.prompt_nft_price,
+                    likes=likes_count,
+                    comments=comments_count
+                )
             )
+        
+        return schemas.PremiumPromptListResponse(
+            prompts=prompts_with_counts,
+            total=total_prompts,
+            page=page,
+            page_size=page_size
         )
-    
-    return schemas.PremiumPromptListResponse(
-        prompts=prompts_with_counts,
-        total=total_prompts,
-        page=page,
-        page_size=page_size
-    )
+    except Exception as e:
+        detail = {
+            "info": "Failed to get premium prompts",
+            "error": str(e),
+        }
+        raise HTTPException(status_code=500, detail=detail)
 
 
 
@@ -123,8 +139,15 @@ async def get_premium_prompt_filters():
     """
     Get all available premium prompt filters.
     """
-    filters = [filter_type.value for filter_type in PremiumPromptFilterType]
-    return {"premium_prompt_filters": filters}
+    try:
+        filters = [filter_type.value for filter_type in PremiumPromptFilterType]
+        return {"premium_prompt_filters": filters}
+    except Exception as e:
+        detail = {
+            "info": "Failed to get premium prompt filters",
+            "error": str(e),
+        }
+        raise HTTPException(status_code=500, detail=detail)
 
 
 
@@ -139,73 +162,80 @@ async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest
     
     Supports pagination with `page` and `page_size`.
     """
-    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM)
+    try:
+        query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM)
 
-    # Filter by `recent`, `popular`, or `trending`
-    if filter_data.filter_type == PremiumPromptFilterType.RECENT:
-        # Prompts created in the last 24 hours
-        last_24_hours = datetime.utcnow() - timedelta(hours=24)
-        query = query.filter(models.Prompt.created_at >= last_24_hours)
+        # Filter by `recent`, `popular`, or `trending`
+        if filter_data.filter_type == PremiumPromptFilterType.RECENT:
+            # Prompts created in the last 24 hours
+            last_24_hours = datetime.utcnow() - timedelta(hours=24)
+            query = query.filter(models.Prompt.created_at >= last_24_hours)
 
-    elif filter_data.filter_type == PremiumPromptFilterType.POPULAR:
-        # Shuffle prompts for random selection
-        query = query.order_by(func.random())
+        elif filter_data.filter_type == PremiumPromptFilterType.POPULAR:
+            # Shuffle prompts for random selection
+            query = query.order_by(func.random())
 
-    elif filter_data.filter_type == PremiumPromptFilterType.TRENDING:
-        # Sort by number of likes in descending order
-        query = query.outerjoin(socialfeed_models.PostLike).group_by(models.Prompt.id).order_by(func.count(socialfeed_models.PostLike.id).desc())
+        elif filter_data.filter_type == PremiumPromptFilterType.TRENDING:
+            # Sort by number of likes in descending order
+            query = query.outerjoin(socialfeed_models.PostLike).group_by(models.Prompt.id).order_by(func.count(socialfeed_models.PostLike.id).desc())
 
-    # Get the total number of prompts
-    total_prompts = query.count()
+        # Get the total number of prompts
+        total_prompts = query.count()
 
-    # Apply pagination in one go
-    paginated_prompts = query.offset((filter_data.page - 1) * filter_data.page_size).limit(filter_data.page_size).all()
+        # Apply pagination in one go
+        paginated_prompts = query.offset((filter_data.page - 1) * filter_data.page_size).limit(filter_data.page_size).all()
 
-    # Fetch all necessary data (likes, comments) for the paginated prompts in one go
-    prompt_ids = [prompt.id for prompt in paginated_prompts]
+        # Fetch all necessary data (likes, comments) for the paginated prompts in one go
+        prompt_ids = [prompt.id for prompt in paginated_prompts]
 
-    # Batch query for likes and comments count
-    likes_comments_data = (
-        db.query(
-            models.Prompt.id,
-            func.count(socialfeed_models.PostLike.id).label('likes_count'),
-            func.count(socialfeed_models.PostComment.id).label('comments_count')
-        )
-        .outerjoin(socialfeed_models.PostLike, socialfeed_models.PostLike.prompt_id == models.Prompt.id)
-        .outerjoin(socialfeed_models.PostComment, socialfeed_models.PostComment.prompt_id == models.Prompt.id)
-        .filter(models.Prompt.id.in_(prompt_ids))
-        .group_by(models.Prompt.id)
-        .all()
-    )
-
-    # Map likes and comments count by prompt ID
-    likes_comments_map = {lc[0]: lc for lc in likes_comments_data}
-
-    # Prepare the response
-    prompts_with_counts = []
-    for prompt in paginated_prompts:
-        likes_comments = likes_comments_map.get(prompt.id, {'likes_count': 0, 'comments_count': 0})
-        prompts_with_counts.append(
-            schemas.PremiumPromptResponse(
-                id=prompt.id,
-                ipfs_image_url=prompt.ipfs_image_url,
-                prompt=prompt.prompt,
-                post_name=prompt.post_name,
-                account_address=prompt.account_address,
-                public=prompt.public,
-                cid=prompt.cid,
-                collection_name=prompt.collection_name,
-                max_supply=prompt.max_supply,
-                prompt_nft_price=prompt.prompt_nft_price,
-                likes=likes_comments.likes_count,
-                comments=likes_comments.comments_count
+        # Batch query for likes and comments count
+        likes_comments_data = (
+            db.query(
+                models.Prompt.id,
+                func.count(socialfeed_models.PostLike.id).label('likes_count'),
+                func.count(socialfeed_models.PostComment.id).label('comments_count')
             )
+            .outerjoin(socialfeed_models.PostLike, socialfeed_models.PostLike.prompt_id == models.Prompt.id)
+            .outerjoin(socialfeed_models.PostComment, socialfeed_models.PostComment.prompt_id == models.Prompt.id)
+            .filter(models.Prompt.id.in_(prompt_ids))
+            .group_by(models.Prompt.id)
+            .all()
         )
 
-    # Return the response
-    return schemas.PremiumPromptListResponse(
-        prompts=prompts_with_counts,
-        total=total_prompts,
-        page=filter_data.page,
-        page_size=filter_data.page_size
-    )
+        # Map likes and comments count by prompt ID
+        likes_comments_map = {lc[0]: lc for lc in likes_comments_data}
+
+        # Prepare the response
+        prompts_with_counts = []
+        for prompt in paginated_prompts:
+            likes_comments = likes_comments_map.get(prompt.id, {'likes_count': 0, 'comments_count': 0})
+            prompts_with_counts.append(
+                schemas.PremiumPromptResponse(
+                    id=prompt.id,
+                    ipfs_image_url=prompt.ipfs_image_url,
+                    prompt=prompt.prompt,
+                    post_name=prompt.post_name,
+                    account_address=prompt.account_address,
+                    public=prompt.public,
+                    cid=prompt.cid,
+                    collection_name=prompt.collection_name,
+                    max_supply=prompt.max_supply,
+                    prompt_nft_price=prompt.prompt_nft_price,
+                    likes=likes_comments.likes_count,
+                    comments=likes_comments.comments_count
+                )
+            )
+
+        # Return the response
+        return schemas.PremiumPromptListResponse(
+            prompts=prompts_with_counts,
+            total=total_prompts,
+            page=filter_data.page,
+            page_size=filter_data.page_size
+        )
+    except Exception as e:
+        detail = {
+            "info": "Failed to filter premium prompts",
+            "error": str(e),
+        }
+        raise HTTPException(status_code=500, detail=detail)
