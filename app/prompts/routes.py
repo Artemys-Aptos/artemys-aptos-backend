@@ -38,6 +38,7 @@ def add_public_prompt(public_data: schemas.PublicPromptCreate, db: Session = Dep
 
     # Return the response
     return schemas.PublicPromptResponse(
+        id=new_prompt.id,
         ipfs_image_url=new_prompt.ipfs_image_url,
         prompt=new_prompt.prompt,
         account_address=new_prompt.account_address,
@@ -62,7 +63,7 @@ def get_prompt_tags():
 @router.get("/get-public-prompts/", response_model=schemas.PublicPromptListResponse)
 def get_public_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
     # Query for all public prompts
-    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PUBLIC)
+    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PUBLIC).order_by(models.Prompt.created_at.desc())
     
     # Get total count for pagination
     total_prompts = query.count()
@@ -78,6 +79,7 @@ def get_public_prompts(page: int = 1, page_size: int = 10, db: Session = Depends
         
         prompts_with_counts.append(
             schemas.PublicPromptResponse(
+                id=prompt.id,
                 ipfs_image_url=prompt.ipfs_image_url,
                 prompt=prompt.prompt,
                 account_address=prompt.account_address,
@@ -127,6 +129,7 @@ def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, db: Se
     return schemas.PublicPromptListResponse(
         prompts=[
             schemas.PublicPromptResponse(
+                id=prompt.id,
                 ipfs_image_url=prompt.ipfs_image_url,
                 prompt=prompt.prompt,
                 account_address=prompt.account_address,

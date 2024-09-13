@@ -55,6 +55,7 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
 
     # Return the response using the Pydantic model schema
     return schemas.PremiumPromptResponse(
+        id=new_premium_prompt.id,
         ipfs_image_url=new_premium_prompt.ipfs_image_url,
         account_address=new_premium_prompt.account_address,
         public=new_premium_prompt.public,
@@ -72,7 +73,8 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
 
 @router.get("/get-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
 def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
-    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM)
+    # Query for premium prompts and order by created_at in descending order
+    query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM).order_by(models.Prompt.created_at.desc())
     
     total_prompts = query.count()
     paginated_prompts = query.offset((page - 1) * page_size).limit(page_size).all()
@@ -84,6 +86,7 @@ def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depend
 
         prompts_with_counts.append(
             schemas.PremiumPromptResponse(
+                id=prompt.id,
                 ipfs_image_url=prompt.ipfs_image_url,
                 account_address=prompt.account_address,
                 public=prompt.public,
@@ -101,6 +104,7 @@ def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depend
         page=page,
         page_size=page_size
     )
+
 
 
 @router.get("/premium-prompt-filters/")
@@ -155,6 +159,7 @@ def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: 
 
         prompts_with_counts.append(
             schemas.PremiumPromptResponse(
+                id=prompt.id,
                 ipfs_image_url=prompt.ipfs_image_url,
                 account_address=prompt.account_address,
                 public=prompt.public,
