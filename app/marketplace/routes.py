@@ -5,7 +5,7 @@ import random
 from app.core.database import get_session
 from . import schemas, services    
 from app.prompts import models
-from sqlalchemy import func
+from sqlalchemy import func, select, desc
 from app.socialfeed import models as socialfeed_models
 from app.core.helpers import paginate
 from app.core.enums.premium_filters import PremiumPromptFilterType
@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.post("/add-premium-prompts/", response_model=schemas.PremiumPromptResponse)
-def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = Depends(get_session)):
+async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = Depends(get_session)):
     """
     Add a new premium prompt in the marketplace.
 
@@ -72,7 +72,7 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
 
 
 @router.get("/get-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
-def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
+async def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depends(get_session)):
     # Query for premium prompts and order by created_at in descending order
     query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM).order_by(models.Prompt.created_at.desc())
     
@@ -108,15 +108,17 @@ def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = Depend
 
 
 @router.get("/premium-prompt-filters/")
-def get_premium_prompt_filters():
+async def get_premium_prompt_filters():
     """
     Get all available premium prompt filters.
     """
     filters = [filter_type.value for filter_type in PremiumPromptFilterType]
     return {"premium_prompt_filters": filters}
 
+
+
 @router.post("/filter-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
-def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: Session = Depends(get_session)):
+async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: Session = Depends(get_session)):
     """
     Filter premium prompts based on:
     
@@ -127,36 +129,51 @@ def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: 
     Supports pagination with `page` and `page_size`.
     """
     query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM)
-    paginated_prompts = []
-    total_prompts = 0
 
-    # Apply the filter based on the filter_type
+    # Filter by `recent`, `popular`, or `trending`
     if filter_data.filter_type == PremiumPromptFilterType.RECENT:
         # Prompts created in the last 24 hours
         last_24_hours = datetime.utcnow() - timedelta(hours=24)
         query = query.filter(models.Prompt.created_at >= last_24_hours)
-        total_prompts = query.count()
-        paginated_prompts = query.offset((filter_data.page - 1) * filter_data.page_size).limit(filter_data.page_size).all()
 
     elif filter_data.filter_type == PremiumPromptFilterType.POPULAR:
-        # Random prompts
-        premium_prompts = query.all()  # Fetch all prompts
-        random.shuffle(premium_prompts)  # Shuffle the list to randomize
-        paginated_prompts = premium_prompts[(filter_data.page - 1) * filter_data.page_size : filter_data.page * filter_data.page_size]
-        total_prompts = len(premium_prompts)
+        # Shuffle prompts for random selection
+        query = query.order_by(func.random())
 
     elif filter_data.filter_type == PremiumPromptFilterType.TRENDING:
-        # Sort by number of likes (descending order)
+        # Sort by number of likes in descending order
         query = query.outerjoin(socialfeed_models.PostLike).group_by(models.Prompt.id).order_by(func.count(socialfeed_models.PostLike.id).desc())
-        total_prompts = query.count()
-        paginated_prompts = query.offset((filter_data.page - 1) * filter_data.page_size).limit(filter_data.page_size).all()
 
-    # Prepare the list of prompts with the likes and comments count
+    # Get the total number of prompts
+    total_prompts = query.count()
+
+    # Apply pagination in one go
+    paginated_prompts = query.offset((filter_data.page - 1) * filter_data.page_size).limit(filter_data.page_size).all()
+
+    # Fetch all necessary data (likes, comments) for the paginated prompts in one go
+    prompt_ids = [prompt.id for prompt in paginated_prompts]
+
+    # Batch query for likes and comments count
+    likes_comments_data = (
+        db.query(
+            models.Prompt.id,
+            func.count(socialfeed_models.PostLike.id).label('likes_count'),
+            func.count(socialfeed_models.PostComment.id).label('comments_count')
+        )
+        .outerjoin(socialfeed_models.PostLike, socialfeed_models.PostLike.prompt_id == models.Prompt.id)
+        .outerjoin(socialfeed_models.PostComment, socialfeed_models.PostComment.prompt_id == models.Prompt.id)
+        .filter(models.Prompt.id.in_(prompt_ids))
+        .group_by(models.Prompt.id)
+        .all()
+    )
+
+    # Map likes and comments count by prompt ID
+    likes_comments_map = {lc[0]: lc for lc in likes_comments_data}
+
+    # Prepare the response
     prompts_with_counts = []
     for prompt in paginated_prompts:
-        likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == prompt.id).count()
-        comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == prompt.id).count()
-
+        likes_comments = likes_comments_map.get(prompt.id, {'likes_count': 0, 'comments_count': 0})
         prompts_with_counts.append(
             schemas.PremiumPromptResponse(
                 id=prompt.id,
@@ -166,11 +183,12 @@ def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: 
                 collection_name=prompt.collection_name,
                 max_supply=prompt.max_supply,
                 prompt_nft_price=prompt.prompt_nft_price,
-                likes=likes_count,  # Use count instead of the likes relationship
-                comments=comments_count  # Use count instead of the comments relationship
+                likes=likes_comments.likes_count,
+                comments=likes_comments.comments_count
             )
         )
 
+    # Return the response
     return schemas.PremiumPromptListResponse(
         prompts=prompts_with_counts,
         total=total_prompts,

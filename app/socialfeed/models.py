@@ -22,7 +22,7 @@ class PostLike(Base):
     id = Column(Integer, primary_key=True, index=True)
     prompt_id = Column(Integer, ForeignKey('prompts.id', ondelete="CASCADE"), nullable=False) 
     prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # Type: public or premium
-    user_account = Column(String, nullable=False)
+    user_account = Column(String, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     prompt = relationship('Prompt', back_populates='likes')
@@ -34,7 +34,7 @@ class PostComment(Base):
     id = Column(Integer, primary_key=True, index=True)
     prompt_id = Column(Integer, ForeignKey('prompts.id', ondelete="CASCADE"), nullable=False) 
     prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # Type: public or premium
-    user_account = Column(String, nullable=False)
+    user_account = Column(String, nullable=False, index=True)
     comment = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -45,5 +45,5 @@ class Follow(Base):
     __tablename__ = 'follows'
 
     id = Column(Integer, primary_key=True, index=True)
-    follower_account = Column(String, nullable=False)  # The account of the user who follows
-    creator_account = Column(String, nullable=False)   # The account of the creator being followed
+    follower_account = Column(String, nullable=False, index=True)  # The account of the user who follows
+    creator_account = Column(String, nullable=False, index=True)   # The account of the creator being followed

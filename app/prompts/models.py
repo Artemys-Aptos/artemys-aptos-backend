@@ -11,14 +11,14 @@ class Prompt(Base):
     id = Column(Integer, primary_key=True, index=True)
     ipfs_image_url = Column(String, nullable=False)
     prompt = Column(String, nullable=False)
-    account_address = Column(String, nullable=False)
-    post_name = Column(String, nullable=False)
-    public = Column(Boolean, default=True)
-    prompt_tag = Column(Enum(PromptTagEnum), nullable=False)
-    prompt_type = Column(Enum(PromptTypeEnum), nullable=False)  # PUBLIC or PREMIUM
-    collection_name = Column(String, nullable=True)  # Only relevant for PREMIUM prompts
-    max_supply = Column(Integer, nullable=True)  # Only relevant for PREMIUM prompts
-    prompt_nft_price = Column(Float, nullable=True)  # Only relevant for PREMIUM prompts
+    account_address = Column(String, nullable=False, index=True)
+    post_name = Column(String, nullable=False, index=True)
+    public = Column(Boolean, default=True, index=True)
+    prompt_tag = Column(Enum(PromptTagEnum), nullable=False, index=True)
+    prompt_type = Column(Enum(PromptTypeEnum), nullable=False, index=True)  # PUBLIC or PREMIUM
+    collection_name = Column(String, nullable=True, index=True)  # Only relevant for PREMIUM prompts
+    max_supply = Column(Integer, nullable=True, index=True)  # Only relevant for PREMIUM prompts
+    prompt_nft_price = Column(Float, nullable=True, index=True)  # Only relevant for PREMIUM prompts
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
