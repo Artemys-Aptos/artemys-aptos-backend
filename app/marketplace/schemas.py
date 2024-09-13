@@ -8,6 +8,7 @@ class PremiumPromptCreate(BaseModel):
     account_address: str
     prompt: str
     post_name: str
+    cid: str
     # public: bool
     prompt_tag: PromptTagEnum
     collection_name: str
@@ -22,6 +23,9 @@ class PremiumPromptResponse(BaseModel):
     id: int
     ipfs_image_url: str
     account_address: str
+    prompt: str
+    post_name: str
+    cid: Optional[str] = None
     public: bool
     collection_name: str
     max_supply: int

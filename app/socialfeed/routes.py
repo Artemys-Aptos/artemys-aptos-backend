@@ -35,7 +35,7 @@ async def like_prompt(like_data: schemas.LikePromptRequest, db: Session = Depend
     ).first()
 
     if existing_like:
-        raise HTTPException(status_code=400, detail="User has already liked this prompt")
+        raise HTTPException(status_code=409, detail="User has already liked this prompt")
 
     # Create a new like
     new_like = models.PostLike(
@@ -668,3 +668,34 @@ async def get_combined_feed(user_account: str, db: Session = Depends(get_session
     return {"total": total_prompts, "page": page, "page_size": page_size, "feed": feed}
 
 
+
+
+@router.get("/prompt-likes/")
+async def get_prompt_likes(prompt_id: int, account_address: str, db: Session = Depends(get_session)):
+    """
+    Retrieve the number of likes for a specific prompt and whether the user has liked it or not.
+
+    - **prompt_id**: The ID of the prompt.
+    - **account_address**: The account address of the user to check if they have liked the prompt.
+    """
+    # Check if the prompt exists
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+
+    # Count the number of likes for the prompt
+    likes_count = db.query(models.PostLike).filter(
+        models.PostLike.prompt_id == prompt_id
+    ).count()
+
+    # Check if the user has liked the prompt
+    user_liked = db.query(models.PostLike).filter(
+        models.PostLike.prompt_id == prompt_id,
+        models.PostLike.user_account == account_address
+    ).first()
+
+    return {
+        "prompt_id": prompt_id,
+        "likes_count": likes_count,
+        "user_liked": bool(user_liked)  # Return True if the user has liked, False otherwise
+    }

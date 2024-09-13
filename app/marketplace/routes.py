@@ -24,6 +24,9 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
 
     - **ipfs_image_url**: IPFS URL for the image.
     - **account_address**: Address of the creator.
+    - **prompt**: Encrypted Prompt text.
+    - **post_name**: Name of the post.
+    - **cid**: CID of the image.
     - **collection_name**: Name of the collection.
     - **max_supply**: Maximum supply for the NFT.
     - **prompt_nft_price**: Price of the NFT in the collection.
@@ -35,6 +38,7 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
         ipfs_image_url=premium_data.ipfs_image_url,
         prompt=premium_data.prompt,
         post_name=premium_data.post_name,
+        cid=premium_data.cid,
         prompt_tag=premium_data.prompt_tag,  # Make sure this is included
         prompt_type=models.PromptTypeEnum.PREMIUM,
         account_address=premium_data.account_address,
@@ -59,6 +63,7 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
         ipfs_image_url=new_premium_prompt.ipfs_image_url,
         account_address=new_premium_prompt.account_address,
         public=new_premium_prompt.public,
+        cid=new_premium_prompt.cid,
         collection_name=new_premium_prompt.collection_name,
         max_supply=new_premium_prompt.max_supply,
         prompt_nft_price=new_premium_prompt.prompt_nft_price,
@@ -88,6 +93,9 @@ async def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = 
             schemas.PremiumPromptResponse(
                 id=prompt.id,
                 ipfs_image_url=prompt.ipfs_image_url,
+                prompt=prompt.prompt,
+                post_name=prompt.post_name,
+                cid=prompt.cid,
                 account_address=prompt.account_address,
                 public=prompt.public,
                 collection_name=prompt.collection_name,
@@ -178,8 +186,11 @@ async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest
             schemas.PremiumPromptResponse(
                 id=prompt.id,
                 ipfs_image_url=prompt.ipfs_image_url,
+                prompt=prompt.prompt,
+                post_name=prompt.post_name,
                 account_address=prompt.account_address,
                 public=prompt.public,
+                cid=prompt.cid,
                 collection_name=prompt.collection_name,
                 max_supply=prompt.max_supply,
                 prompt_nft_price=prompt.prompt_nft_price,

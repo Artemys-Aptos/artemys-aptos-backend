@@ -14,6 +14,7 @@ class Prompt(Base):
     account_address = Column(String, nullable=False, index=True)
     post_name = Column(String, nullable=False, index=True)
     public = Column(Boolean, default=True, index=True)
+    cid = Column(String, nullable=True, index=True, default=None) # only relevant for PREMIUM prompts
     prompt_tag = Column(Enum(PromptTagEnum), nullable=False, index=True)
     prompt_type = Column(Enum(PromptTypeEnum), nullable=False, index=True)  # PUBLIC or PREMIUM
     collection_name = Column(String, nullable=True, index=True)  # Only relevant for PREMIUM prompts
