@@ -13,40 +13,41 @@ router = APIRouter()
 
 
 @router.post("/add-public-prompts/", response_model=schemas.PublicPromptResponse)
-def add_public_prompt(prompt_data: schemas.PublicPromptCreate, db: Session = Depends(get_session)):
+def add_public_prompt(public_data: schemas.PublicPromptCreate, db: Session = Depends(get_session)):
     """
-    Endpoint to create a new public prompt.
+    Add a new public prompt to the database.
     """
-    # Ensure we don't have premium-specific fields
-    if hasattr(prompt_data, "collection_name") or hasattr(prompt_data, "max_supply") or hasattr(prompt_data, "prompt_nft_price"):
-        raise HTTPException(status_code=400, detail="Public prompts should not have premium-specific fields.")
-
-    # Create the public prompt
+    # Create a new public prompt
     new_prompt = models.Prompt(
-        ipfs_image_url=prompt_data.ipfs_image_url,
-        prompt=prompt_data.prompt,
-        account_address=prompt_data.account_address,
-        post_name=prompt_data.post_name,
-        public=True,  # Always true for public prompts
-        prompt_tag=prompt_data.prompt_tag,
+        ipfs_image_url=public_data.ipfs_image_url,
+        prompt=public_data.prompt,
+        account_address=public_data.account_address,
+        post_name=public_data.post_name,
+        public=True,
+        prompt_tag=public_data.prompt_tag,
         prompt_type=models.PromptTypeEnum.PUBLIC
     )
 
     db.add(new_prompt)
     db.commit()
     db.refresh(new_prompt)
-    # Update user stats (generation count and XP)
-    update_user_stats(prompt_data.account_address, db)
 
-    # Return the created prompt serialized into the response model
+    # Count likes and comments (initially they are 0 since it's a new prompt)
+    likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == new_prompt.id).count()
+    comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == new_prompt.id).count()
+
+    # Return the response
     return schemas.PublicPromptResponse(
         ipfs_image_url=new_prompt.ipfs_image_url,
         prompt=new_prompt.prompt,
         account_address=new_prompt.account_address,
         post_name=new_prompt.post_name,
         public=new_prompt.public,
-        prompt_tag=new_prompt.prompt_tag
+        prompt_tag=new_prompt.prompt_tag,
+        likes_count=likes_count,
+        comments_count=comments_count
     )
+
 
 
 @router.get("/prompt-tags/")

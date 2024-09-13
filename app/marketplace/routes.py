@@ -50,6 +50,8 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
 
     # Update user stats (generation count and XP)
     update_user_stats(new_premium_prompt.account_address, db)
+    likes_count = db.query(socialfeed_models.PostLike).filter(socialfeed_models.PostLike.prompt_id == new_premium_prompt.id).count()
+    comments_count = db.query(socialfeed_models.PostComment).filter(socialfeed_models.PostComment.prompt_id == new_premium_prompt.id).count()
 
     # Return the response using the Pydantic model schema
     return schemas.PremiumPromptResponse(
@@ -58,7 +60,9 @@ def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Session = 
         public=new_premium_prompt.public,
         collection_name=new_premium_prompt.collection_name,
         max_supply=new_premium_prompt.max_supply,
-        prompt_nft_price=new_premium_prompt.prompt_nft_price
+        prompt_nft_price=new_premium_prompt.prompt_nft_price,
+        likes=likes_count,
+        comments=comments_count
     )
 
 
