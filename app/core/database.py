@@ -17,7 +17,7 @@ engine = create_engine(
     pool_size=20,  # Adjust based on your app's concurrency requirements
     max_overflow=5,  # Allows for extra connections in times of high demand
     pool_timeout=120,  # Reduces wait time for a connection
-    pool_recycle=18000,  # Recycles connections every 30 minutes
+    pool_recycle=36000,  # Recycles connections every 1 hours
     # echo_pool='debug',  # Logs pool checkouts/checkins (remove in production)
     pool_pre_ping=True,
     # Any idle transaction request past 20seconds will be terminated
