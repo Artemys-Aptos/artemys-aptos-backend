@@ -14,7 +14,7 @@ Base = declarative_base()
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    pool_size=20,  # Adjust based on your app's concurrency requirements
+    pool_size=25,  # Adjust based on your app's concurrency requirements
     max_overflow=5,  # Allows for extra connections in times of high demand
     pool_timeout=120,  # Reduces wait time for a connection
     pool_recycle=36000,  # Recycles connections every 1 hours
