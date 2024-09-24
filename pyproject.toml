@@ -16,6 +16,8 @@ psycopg2-binary = "^2.9.9"
 cryptography = "^43.0.1"
 locust = "^2.31.5"
 celery = "^5.4.0"
+redis = "^5.0.8"
+aioredis = "^2.0.1"
 
 
 [build-system]
