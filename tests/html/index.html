@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <button onclick="testAPI()">Test Batch Finalize API</button>
+    <div id="result"></div>
+
+    <script>
+      async function testAPI() {
+        const apiKey =
+          'N97FlFhQkTy3OzibNZCZi4SPi8t61OZTW7ZJ9zNVFdEH7r1rAAb2ikjxwRaLBfR1';
+        const url = 'https://artemys.vercel.app/api/admin/batch-finalize-challenges';
+
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'X-API-Key': apiKey,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.indexOf('application/json') !== -1) {
+            const data = await response.json();
+            document.getElementById('result').innerText = JSON.stringify(
+              data,
+              null,
+              2
+            );
+          } else {
+            const text = await response.text();
+            document.getElementById('result').innerText =
+              'Received non-JSON response: ' + text;
+          }
+        } catch (error) {
+          document.getElementById('result').innerText =
+            'Error: ' + error.message;
+        }
+      }
+    </script>
+  </body>
+</html>

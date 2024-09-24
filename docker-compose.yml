@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  web:
+    image: etherea
+    build: 
+      context: .                # Use the root directory for building the image
+      dockerfile: Dockerfile    # Use your Dockerfile
+    # volumes:
+    #   - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_SCHEME: ${REDIS_SCHEME}
+      ICELL_SMS_ENDPOINT: ${ICELL_SMS_ENDPOINT}
+      ICELL_API_TOKEN: ${ICELL_API_TOKEN}
+      ICELL_BASE_URL: ${ICELL_BASE_URL}
+      SPID: ${SPID}
+
+
+  redis:
+    image: redis:alpine
+
+  # celery_worker:
+  #   build: .
+  #   command: celery -A app.celery.celery.celery_app worker --loglevel=info
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #     REDIS_HOST: ${REDIS_HOST}
+  #     REDIS_PORT: ${REDIS_PORT}
+  #     REDIS_PASSWORD: ${REDIS_PASSWORD}
+  #     REDIS_USERNAME: ${REDIS_USERNAME}
+  #     REDIS_SCHEME: ${REDIS_SCHEME}
+  #     ICELL_SMS_ENDPOINT: ${ICELL_SMS_ENDPOINT}
+  #     ICELL_API_TOKEN: ${ICELL_API_TOKEN}
+  #     ICELL_BASE_URL: ${ICELL_BASE_URL}
+  #     SPID: ${SPID}
+
+  # celery_beat:
+  #   build: .
+  #   command: celery -A app.celery.celery.celery_app beat --loglevel=info
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #     REDIS_HOST: ${REDIS_HOST}
+  #     REDIS_PORT: ${REDIS_PORT}
+  #     REDIS_PASSWORD: ${REDIS_PASSWORD}
+  #     REDIS_USERNAME: ${REDIS_USERNAME}
+  #     REDIS_SCHEME: ${REDIS_SCHEME}
+  #     ICELL_SMS_ENDPOINT: ${ICELL_SMS_ENDPOINT}
+  #     ICELL_API_TOKEN: ${ICELL_API_TOKEN}
+  #     ICELL_BASE_URL: ${ICELL_BASE_URL}
+  #     SPID: ${SPID}
