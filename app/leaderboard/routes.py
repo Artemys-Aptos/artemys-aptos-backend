@@ -4,8 +4,7 @@ from datetime import datetime, timedelta
 from app.core.database import get_session
 from app.core.helpers import paginate
 from . import schemas, services, models
-
-
+import random
 
 router = APIRouter()
 
@@ -21,12 +20,23 @@ def leaderboard_generations_24h(page: int = 1, page_size: int = 10, db: Session 
         total_count = query.count()
         users = paginate(query, page, page_size)
 
+        results = [{"user_account": user.user_account, "total_generations": user.total_generations} for user in users]
+
+        # Add 10 dummy entries with random wallet addresses
+        for _ in range(10):
+            # Generate a random hex string of 64 characters
+            wallet_address = "0x" + ''.join(random.choice('0123456789abcdef') for _ in range(64))
+            results.append({
+                "user_account": wallet_address, 
+                "total_generations": random.randint(1, 100)
+            })
+
         return {
-            "results": [{"user_account": user.user_account, "total_generations": user.total_generations} for user in users],
-            "total": total_count,
+            "results": results,
+            "total": total_count + 10,  # Adjust total count
             "page": page,
-                "page_size": page_size
-            }
+            "page_size": page_size
+        }
     except Exception as e:
         detail = {
             "info": "Failed to get leaderboard based on the number of generations in the last 24 hours",
@@ -43,20 +53,26 @@ def leaderboard_streaks(page: int = 1, page_size: int = 10, db: Session = Depend
     """
     try:
         query = db.query(models.UserStats).order_by(models.UserStats.streak_days.desc())
-    
-        # Get total count for pagination
-        total_users = query.count()
+        total_count = query.count()
+        users = paginate(query, page, page_size)
 
-        # Apply pagination
-        users = query.offset((page - 1) * page_size).limit(page_size).all()
+        results = [{"user_account": user.user_account, "streak_days": user.streak_days} for user in users]
 
-        # Return paginated streak leaderboard
+        # Add 10 dummy entries with random wallet addresses
+        for _ in range(10):
+            # Generate a random hex string of 64 characters
+            wallet_address = "0x" + ''.join(random.choice('0123456789abcdef') for _ in range(64))
+            results.append({
+                "user_account": wallet_address,
+                "streak_days": random.randint(1, 30)
+            })
+
         return {
-            "results": [{"user_account": user.user_account, "streak_days": user.streak_days} for user in users],
-            "total": total_users,
+            "results": results,
+            "total": total_count + 10,  # Adjust total count
             "page": page,
-                "page_size": page_size
-            }
+            "page_size": page_size
+        }
     except Exception as e:
         detail = {
             "info": "Failed to get leaderboard based on the number of consecutive days with generations",
@@ -76,10 +92,21 @@ def leaderboard_xp(page: int = 1, page_size: int = 10, db: Session = Depends(get
         total_count = query.count()
         users = paginate(query, page, page_size)
 
+        results = [{"user_account": user.user_account, "xp": user.xp} for user in users]
+
+        # Add 10 dummy entries with random wallet addresses
+        for _ in range(10):
+            # Generate a random hex string of 64 characters
+            wallet_address = "0x" + ''.join(random.choice('0123456789abcdef') for _ in range(64))
+            results.append({
+                "user_account": wallet_address,
+                "xp": random.randint(1, 1000)
+            })
+
         return {
-        "results": [{"user_account": user.user_account, "xp": user.xp} for user in users],
-        "total": total_count,
-        "page": page,
+            "results": results,
+            "total": total_count + 10,  # Adjust total count
+            "page": page,
             "page_size": page_size
         }
     except Exception as e:
