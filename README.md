@@ -10,20 +10,22 @@ This repository contains the backend code for **[Artemys](https://www.artemysai.
   * [Prompt Marketplace Endpoints](#prompt-marketplace-endpoints)
   * [Leaderboard Endpoints](#leaderboard-endpoints)
   * [Social Feed Endpoints](#social-feed-endpoints)
-* [Tasks](#-tasks)
+* [Automation Tasks](#-automation-tasks)
 * [Database](#-database)
 * [Dependencies](#-dependencies)
 * [Running the Application](#-running-the-application)
 
 ## 🤖 Overview
 
-Artemys backend is built using FastAPI and interacts with a database (PostgreSQL) to store and manage data related to AI prompts, user activity, and leaderboards. It uses Celery for background tasks like finalizing challenges, which involve interacting with Aptos smart contracts.
+Artemys backend is built using FastAPI and interacts with a database (PostgreSQL) to store and manage indexed data from the aptos blockchain related to AI prompts, user activity, and leaderboards. 
+
+It also uses Celery for background automation tasks like finalizing completed community run challenges, by calling the [batch finalize API endpoint](https://github.com/Artemys-Aptos/frontend/blob/main/pages/api/admin/batch-finalize-challenges.ts) periodically.
 
 ## 🤖 API Endpoints
 
 ### Prompt Marketplace Endpoints
 
-* **POST `/add-premium-prompts`:** Adds a new premium prompt to the marketplace. These premium prompts are likely linked to NFTs on the Aptos blockchain.
+* **POST `/add-premium-prompts`:** Adds a new premium prompt to the marketplace. These premium prompts are linked to NFTs on the Aptos blockchain.
 * **GET `/get-premium-prompts`:** Retrieves all premium prompts.
 * **GET `/premium-prompt-filters`:**  Gets all available filters for premium prompts (e.g., recent, popular, trending).
 * **POST `/filter-premium-prompts`:** Filters premium prompts based on the provided filter type.
@@ -34,9 +36,9 @@ Artemys backend is built using FastAPI and interacts with a database (PostgreSQL
 
 ### Leaderboard Endpoints
 
-* **GET `/generations-24h`:**  Leaderboard based on the number of generations in the last 24 hours. This might track the usage of prompts or the creation of AI-generated content.
+* **GET `/generations-24h`:**  Leaderboard based on the number of generations in the last 24 hours. This tracks the usage of prompts or the creation of AI-generated content.
 * **GET `/streaks`:** Leaderboard based on consecutive days with generations, encouraging user engagement.
-* **GET `/xp`:** Leaderboard based on user XP, potentially earned through activities on the platform.
+* **GET `/xp`:** Leaderboard based on user XP earned through frequent activities on the platform.
 
 ### Social Feed Endpoints
 
@@ -53,9 +55,9 @@ Artemys backend is built using FastAPI and interacts with a database (PostgreSQL
 * **GET `/feed/combined`:** Gets a combined feed from followers and following.
 * **GET `/prompt-likes`:** Retrieves the number of likes for a prompt and whether the user has liked it.
 
-## 🤖 Tasks
+## 🤖 Automation Tasks
 
-* **`finalize_challenges`:** A Celery task scheduled to run every 30 minutes. This task might interact with the Aptos blockchain to determine challenge winners and distribute prizes.
+* **`finalize_challenges`:** A Celery task scheduled to run every 30 minutes. This task interacts with the Aptos blockchain to determine challenge winners and distribute prizes.
 
 ## 🤖 Database
 
