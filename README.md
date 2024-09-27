@@ -1,7 +1,7 @@
 
 # Artemys Backend
 
-This repository contains the backend code for **Artemys**, an AI Prompt Marketplace built for the Aptos Hackathon. It provides API endpoints for managing prompts, user interactions, social features, and leaderboards, all designed to integrate with the Aptos blockchain.
+This repository contains the backend code for **[Artemys](https://www.artemysai.xyz/)**, an AI Prompt Marketplace built for the Aptos Hackathon. It provides API endpoints for managing prompts, user interactions, social features, and leaderboards, all designed to integrate with the Aptos blockchain.
 
 ## 📋 Table of Contents
 
@@ -17,7 +17,7 @@ This repository contains the backend code for **Artemys**, an AI Prompt Marketpl
 
 ## 🤖 Overview
 
-The Artemys backend is built using FastAPI and interacts with a database (PostgreSQL) to store and manage data related to AI prompts, user activity, and leaderboards. It uses Celery for background tasks like finalizing challenges, which involve interacting with Aptos smart contracts.
+Artemys backend is built using FastAPI and interacts with a database (PostgreSQL) to store and manage data related to AI prompts, user activity, and leaderboards. It uses Celery for background tasks like finalizing challenges, which involve interacting with Aptos smart contracts.
 
 ## 🤖 API Endpoints
 
