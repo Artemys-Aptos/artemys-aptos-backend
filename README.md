@@ -81,5 +81,3 @@ The project uses the following key dependencies:
 3. **Run the FastAPI application:** `uvicorn app.main:app --reload`
 4. **Start the Celery worker:** `celery -A app.celery.celery.celery_app worker --loglevel=info`
 5. **Start the Celery beat scheduler:** `celery -A app.celery.celery.celery_app beat --loglevel=info`
-
-**Note:** This README assumes you have basic knowledge of setting up and running FastAPI applications, Celery workers, and interacting with the Aptos blockchain.
