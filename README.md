@@ -1,7 +1,7 @@
 
 # Artemys Backend
 
-This repository contains the backend code for **[Artemys](https://www.artemysai.xyz/)**, an AI Prompt Marketplace built for the Aptos Hackathon. It provides API endpoints for managing prompts, user interactions, social features, and leaderboards, all designed to integrate with the Aptos blockchain.
+This repository contains the backend code for **[Artemys](https://www.artemysai.xyz/)**, an AI-powered social platform built on the Aptos blockchain for the Code Collision Hackathon. It provides API endpoints for managing prompts, user interactions, social features, and leaderboards, all designed to integrate with the Aptos blockchain.
 
 ## 📋 Table of Contents
 
