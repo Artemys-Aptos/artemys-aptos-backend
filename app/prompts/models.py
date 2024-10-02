@@ -20,6 +20,7 @@ class Prompt(Base):
     collection_name = Column(String, nullable=True, index=True)  # Only relevant for PREMIUM prompts
     max_supply = Column(Integer, nullable=True, index=True)  # Only relevant for PREMIUM prompts
     prompt_nft_price = Column(Float, nullable=True, index=True)  # Only relevant for PREMIUM prompts
+    video_url = Column(String, nullable=True, index=True) # Only premium promots
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
