@@ -115,9 +115,11 @@ async def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = 
                     max_supply=prompt.max_supply,
                     prompt_nft_price=prompt.prompt_nft_price,
                     likes=likes_count,
-                    comments=comments_count
+                    comments=comments_count,
+                    grant_access=prompt.grant_access  # Add grant_access field
                 )
             )
+
         
         return schemas.PremiumPromptListResponse(
             prompts=prompts_with_counts,
@@ -221,10 +223,12 @@ async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest
                     collection_name=prompt.collection_name,
                     max_supply=prompt.max_supply,
                     prompt_nft_price=prompt.prompt_nft_price,
-                    likes=likes_comments.likes_count,
-                    comments=likes_comments.comments_count
+                    likes=likes_comments['likes_count'],
+                    comments=likes_comments['comments_count'],
+                    grant_access=prompt.grant_access  # Add grant_access field
                 )
             )
+
 
         # Return the response
         return schemas.PremiumPromptListResponse(

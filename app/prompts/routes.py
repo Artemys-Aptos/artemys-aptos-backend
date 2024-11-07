@@ -119,6 +119,7 @@ async def get_public_prompts(page: int = 1, page_size: int = 10, db: Session = D
                 prompt=prompt.prompt,
                 account_address=prompt.account_address,
                 post_name=prompt.post_name,
+                ai_model=prompt.ai_model,
                 public=prompt.public,
                 prompt_tag=prompt.prompt_tag,
                 likes_count=likes_count,

@@ -29,9 +29,9 @@ class PremiumPromptResponse(BaseModel):
     post_name: str
     cid: Optional[str] = None
     public: bool
-    ai_model: str
-    chain: str
-    grant_access: bool
+    ai_model: Optional[str] = None
+    chain: Optional[str] = None
+    grant_access: Optional[bool]
     collection_name: str
     max_supply: int
     prompt_nft_price: float
