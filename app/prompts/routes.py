@@ -209,3 +209,22 @@ async def filter_public_prompts(filter_data: schemas.PublicPromptFilterRequest, 
         page_size=filter_data.page_size
     )
 
+
+@router.put("/prompts/{prompt_id}/grant_access")
+async def grant_access_to_prompt(prompt_id: int, db: Session = Depends(get_session)):  # Use your existing get_session dependency
+    """
+    Grants access to a premium prompt by setting grant_access to True.
+    """
+
+    prompt = await db.query(models.Prompt).filter(models.Prompt.id == prompt_id).first()
+
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+
+    if prompt.prompt_type != models.PromptTypeEnum.PREMIUM:
+        raise HTTPException(status_code=400, detail="Prompt is not a premium prompt")
+
+    prompt.grant_access = True
+    await db.commit()
+
+    return {"message": "Access granted to prompt"}

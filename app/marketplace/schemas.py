@@ -9,6 +9,8 @@ class PremiumPromptCreate(BaseModel):
     prompt: str
     post_name: str
     cid: str
+    ai_model: str
+    chain: str
     # public: bool
     prompt_tag: PromptTagEnum
     collection_name: str
@@ -27,6 +29,9 @@ class PremiumPromptResponse(BaseModel):
     post_name: str
     cid: Optional[str] = None
     public: bool
+    ai_model: str
+    chain: str
+    grant_access: bool
     collection_name: str
     max_supply: int
     prompt_nft_price: float
