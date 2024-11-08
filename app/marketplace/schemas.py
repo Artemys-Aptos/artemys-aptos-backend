@@ -11,7 +11,6 @@ class PremiumPromptCreate(BaseModel):
     cid: str
     ai_model: str
     chain: str
-    # public: bool
     prompt_tag: PromptTagEnum
     collection_name: str
     max_supply: int

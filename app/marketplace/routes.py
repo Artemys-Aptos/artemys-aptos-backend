@@ -39,8 +39,10 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
             ipfs_image_url=premium_data.ipfs_image_url,
             prompt=premium_data.prompt,
             post_name=premium_data.post_name,
+            ai_model=premium_data.ai_model,
+            chain=premium_data.chain,  # Ensure chain is passed correctly
             cid=premium_data.cid,
-            prompt_tag=premium_data.prompt_tag,  # Ensure this is included
+            prompt_tag=premium_data.prompt_tag,
             prompt_type=models.PromptTypeEnum.PREMIUM,
             account_address=premium_data.account_address,
             public=False,
@@ -62,16 +64,19 @@ async def add_premium_prompt(premium_data: schemas.PremiumPromptCreate, db: Sess
         return schemas.PremiumPromptResponse(
             id=new_premium_prompt.id,
             ipfs_image_url=new_premium_prompt.ipfs_image_url,
-            prompt=new_premium_prompt.prompt,  # Add the prompt field
-            post_name=new_premium_prompt.post_name,  # Add the post_name field
+            prompt=new_premium_prompt.prompt,
+            post_name=new_premium_prompt.post_name,
+            ai_model=new_premium_prompt.ai_model,
+            chain=new_premium_prompt.chain,  
+            public=new_premium_prompt.public,  
             account_address=new_premium_prompt.account_address,
-            public=new_premium_prompt.public,
             cid=new_premium_prompt.cid,
             collection_name=new_premium_prompt.collection_name,
             max_supply=new_premium_prompt.max_supply,
             prompt_nft_price=new_premium_prompt.prompt_nft_price,
-            likes=likes_count,
-            comments=comments_count
+            likes=likes_count or 0,
+            comments=comments_count or 0,
+            grant_access=new_premium_prompt.grant_access or False
         )
     except Exception as e:
         detail = {

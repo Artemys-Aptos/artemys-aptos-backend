@@ -6,8 +6,6 @@ class PublicPromptCreate(BaseModel):
     ipfs_image_url: str
     prompt: str
     account_address: str
-    ai_model: str
-    chain: str
     post_name: str
     public: bool
     prompt_tag: PromptTagEnum
@@ -22,8 +20,6 @@ class PublicPromptResponse(BaseModel):
     prompt: str
     account_address: str
     post_name: str
-    ai_model: Optional[str] = None
-    chain: Optional[str] = None
     public: bool
     prompt_tag: PromptTagEnum
     likes_count: Optional[int] = 0
