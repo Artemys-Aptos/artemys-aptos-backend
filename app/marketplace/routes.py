@@ -113,15 +113,17 @@ async def get_premium_prompts(page: int = 1, page_size: int = 10, db: Session = 
                     ipfs_image_url=prompt.ipfs_image_url,
                     prompt=prompt.prompt,
                     post_name=prompt.post_name,
-                    cid=prompt.cid,
+                    ai_model=prompt.ai_model,
+                    chain=prompt.chain,  
+                    public=prompt.public,  
                     account_address=prompt.account_address,
-                    public=prompt.public,
+                    cid=prompt.cid,
                     collection_name=prompt.collection_name,
                     max_supply=prompt.max_supply,
                     prompt_nft_price=prompt.prompt_nft_price,
-                    likes=likes_count,
-                    comments=comments_count,
-                    grant_access=prompt.grant_access  # Add grant_access field
+                    likes=likes_count or 0,
+                    comments=comments_count or 0,
+                    grant_access=prompt.grant_access or False
                 )
             )
 
