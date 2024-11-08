@@ -162,39 +162,21 @@ async def get_premium_prompt_filters():
 
 @router.post("/filter-premium-prompts/", response_model=schemas.PremiumPromptListResponse)
 async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest, db: Session = Depends(get_session)):
-    """
-    Filter premium prompts based on:
-    
-    - **recent**: Prompts created within the last 24 hours.
-    - **popular**: Random selection of premium prompts.
-    - **trending**: Prompts sorted by the number of likes.
-    
-    Supports pagination with `page` and `page_size`.
-    """
     try:
         query = db.query(models.Prompt).filter(models.Prompt.prompt_type == models.PromptTypeEnum.PREMIUM)
 
         # Filter by `recent`, `popular`, or `trending`
         if filter_data.filter_type == PremiumPromptFilterType.RECENT:
-            # Prompts created in the last 24 hours
             last_24_hours = datetime.utcnow() - timedelta(hours=24)
             query = query.filter(models.Prompt.created_at >= last_24_hours)
-
         elif filter_data.filter_type == PremiumPromptFilterType.POPULAR:
-            # Shuffle prompts for random selection
             query = query.order_by(func.random())
-
         elif filter_data.filter_type == PremiumPromptFilterType.TRENDING:
-            # Sort by number of likes in descending order
             query = query.outerjoin(socialfeed_models.PostLike).group_by(models.Prompt.id).order_by(func.count(socialfeed_models.PostLike.id).desc())
 
-        # Get the total number of prompts
         total_prompts = query.count()
-
-        # Apply pagination in one go
         paginated_prompts = query.offset((filter_data.page - 1) * filter_data.page_size).limit(filter_data.page_size).all()
 
-        # Fetch all necessary data (likes, comments) for the paginated prompts in one go
         prompt_ids = [prompt.id for prompt in paginated_prompts]
 
         # Batch query for likes and comments count
@@ -211,8 +193,8 @@ async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest
             .all()
         )
 
-        # Map likes and comments count by prompt ID
-        likes_comments_map = {lc[0]: lc for lc in likes_comments_data}
+        # Map likes and comments count by prompt ID, with index-based access
+        likes_comments_map = {lc[0]: {'likes_count': lc[1], 'comments_count': lc[2]} for lc in likes_comments_data}
 
         # Prepare the response
         prompts_with_counts = []
@@ -224,20 +206,20 @@ async def filter_premium_prompts(filter_data: schemas.PremiumPromptFilterRequest
                     ipfs_image_url=prompt.ipfs_image_url,
                     prompt=prompt.prompt,
                     post_name=prompt.post_name,
+                    ai_model=prompt.ai_model,
+                    chain=prompt.chain,  
+                    public=prompt.public,  
                     account_address=prompt.account_address,
-                    public=prompt.public,
                     cid=prompt.cid,
                     collection_name=prompt.collection_name,
                     max_supply=prompt.max_supply,
                     prompt_nft_price=prompt.prompt_nft_price,
                     likes=likes_comments['likes_count'],
                     comments=likes_comments['comments_count'],
-                    grant_access=prompt.grant_access  # Add grant_access field
+                    grant_access=prompt.grant_access
                 )
             )
 
-
-        # Return the response
         return schemas.PremiumPromptListResponse(
             prompts=prompts_with_counts,
             total=total_prompts,
